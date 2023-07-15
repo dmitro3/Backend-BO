@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.625 33">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #6262ff;
+      }
+    </style>
+  </defs>
+  <g id="ethereum" transform="translate(-9 1)">
+    <g id="Group_143" data-name="Group 143" transform="translate(9 -1)">
+      <path id="Path_64" data-name="Path 64" class="cls-1" d="M28.618,16.809,18.312,22.791,8,16.809,18.312,0Zm-10.306,7.9L8,18.73,18.312,33,28.625,18.73,18.312,24.711Z" transform="translate(-8)"/>
+    </g>
+  </g>
+</svg>

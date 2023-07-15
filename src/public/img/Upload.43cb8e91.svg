@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="102" height="74.013" viewBox="0 0 102 74.013">
+  <g id="Group_12878" data-name="Group 12878" transform="translate(-553.705 -718)">
+    <text id="Upload_photo" data-name="Upload photo" transform="translate(553.705 778.013)" font-size="12" font-family="Ubuntu" opacity="0.2"><tspan x="13.248" y="11">Upload photo</tspan></text>
+    <g id="data-upload" transform="translate(578 718)" opacity="0.33">
+      <path id="Path_28974" data-name="Path 28974" d="M41.667,7V19.5H8.333V7H0V23.667a4.167,4.167,0,0,0,4.167,4.167H45.833A4.167,4.167,0,0,0,50,23.667V7Z" transform="translate(0 22.167)" fill="#111"/>
+      <path id="Path_28975" data-name="Path 28975" d="M12.917,33.333H21.25V16.667H31.667L17.083,0,2.5,16.667H12.917Z" transform="translate(7.917)" fill="#111"/>
+    </g>
+  </g>
+</svg>
