@@ -21,17 +21,6 @@ paypal.configure({
     'client_secret': config.PAYPAL_CLIENT_SECRET
 })
 
-// app.get('/test', function (req, res) {
-//     let title = config.TITLE_SITE
-//     let header = "Bạn đã nạp thành công"
-//     res.render('success_paypal', { 
-//         title: title,
-//         header: header,
-//         price: 20,
-//     });
-// })
-
-
 app.get('/success', function (req, res) {
     const payerId = req.query.PayerID
     const paymentId = req.query.paymentId
@@ -139,7 +128,6 @@ app.get('/cancel', function (req, res) {
         price: 0,
     });
 })
-
 
 app.get('/pay', function (req, res) {
 

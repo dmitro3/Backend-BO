@@ -2,12 +2,12 @@ const nodeMailer = require('nodemailer')
 // Những thông tin dưới đây các bạn có thể ném nó vào biến môi trường env nhé.
 
 let listemail = [
-	'contact.beetrade@gmail.com', 'contact.beetrade@gmail.com'
+	'dungdq3@gmail.com', 'dungdq3@gmail.com'
 ];
 
 // Vì để demo nên mình để các biến const ở đây.
-const adminEmail = 'contact.beetrade@gmail.com'
-const adminPassword = 'tgftcfnjpbxpzsmp'
+const adminEmail = 'dungdq3@gmail.com'
+const adminPassword = 'vwgspflqefmlepjt'
 // Mình sử dụng host của google - gmail
 const mailHost = 'smtp.gmail.com'
 // 587 là một cổng tiêu chuẩn và phổ biến trong giao thức SMTP
@@ -32,7 +32,15 @@ const sendMail = (to, subject, htmlContent) => {
     html: htmlContent // Phần nội dung mail mình sẽ dùng html thay vì thuần văn bản thông thường.
   }
   // hàm transporter.sendMail() này sẽ trả về cho chúng ta một Promise
-  return transporter.sendMail(options)
+  return transporter.sendMail(options, (err, info) => {
+    if(err) {
+      console.log("Yo Jesse Bitchhh!")
+      console.log(err)
+    }
+    if(info) {
+      console.log("Yo Mr White sience ha! mail send scuccess")
+    }
+  })
 }
 module.exports = {
   sendMail

@@ -4,8 +4,8 @@ const app = router();
 //const fs = require('fs')
 const config = require('../config')
 const Helper = require("../helpers");
-const fileSys = config.PATH_SYS_CONFIG
-const fileSysCommission = config.PATH_SYS_COMMISSION
+const fileSys = config.PATH_SYS_CONFIG // stSys
+const fileSysCommission = config.PATH_SYS_COMMISSION // stCommission
 
 
 app.use(function(req, res, next) {
@@ -15,24 +15,20 @@ app.use(function(req, res, next) {
     next();
 });
 
-
+// lấy file stCommission
 app.get("/getRateCommission", (req, res) => {
     //let Sys = fs.readFileSync(fileSysCommission)
     const dataSys = Helper.getConfig(fileSysCommission);
     res.json({success: 1, data: dataSys})
 });
-
+// update file stCommission cái này nên yêu cầu token admin 
 app.post("/saveRateCommission", (req, res) => {
 
     const dataSys = req.body;
 	Helper.setConfig(fileSysCommission, dataSys);
-    //fs.writeFile(fileSysCommission, json, 'utf8', (err) => {
-    //    if (err) throw err;
-    //    res.json({success: 1})
-    //})
 	res.json({success: 1})
 });
-
+// lấy mồi vài trường trong file stSys
 app.get("/wallet", (req, res) => {
 
     const dataSys = Helper.getConfig(fileSys);

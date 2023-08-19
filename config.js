@@ -1,17 +1,19 @@
-let USE_SSL = true;
+let USE_SSL = false;
 
 module.exports = {
   USE_SSL,
   CF_SSL: {
-    key: "certs/panazic.key",
-    cert: "certs/panazic.crt",
+    // key: "certs/panazic.key",
+    // cert: "certs/panazic.crt",
+    key: "certs/key.pem",
+    cert: "certs/cert.pem",
   },
 
-  DOMAIN: "beetrade.vip",
+  DOMAIN: "192.168.1.48",
   TITLE_SITE: "BeeTrade",
   CONTACT: "",
-  MAIL_LOGO: "beetrade.vip/logo.png",
-  MAIL_IMG_FOOTER: "beetrade.vip/line.png",
+  MAIL_LOGO: "192.168.1.48/logo.png",
+  MAIL_IMG_FOOTER: "192.168.1.48/line.png",
 
   IS_PLAY_SPOT: true, // mặc địng false -> FUTURES, Sử dụng BINANCE SPOT ( check được sàn ) hoặc FUTURE ( không bào giờ bảo trì, không check được sàn )
 
@@ -41,8 +43,8 @@ module.exports = {
 
   PORT_TRADE: 2096, // default 443 ssl
   PORT_SYS: 2087,
-  PORT_NAP: 2083,
-  PORT_NOTIFY: 2053,
+  PORT_NAP: 2083, // bỏ
+  PORT_NOTIFY: 2053, // bỏ 
 
   TELEGRAM_TOKEN: "6157681981:AAHIPgCnBL2I_yTN2hrax5F_ccMtGhIxEWI", // sử dụng BOT
   TELEGRAM_BET_ID: "azpplink", // là kênh để gửi thông báo

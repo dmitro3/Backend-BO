@@ -40,8 +40,6 @@ class Resize {
     return filename;
   }
   static filename(nick) {
-    // random file name
-	  //let rd = Math.floor(Math.random() * 900000000) + 100000000;
 
     let name = `${nick}.png`
     name = md5(name+nick)+ '.png';
@@ -60,9 +58,6 @@ class Resize {
     return name;
   }
   static filenameFront(nick) {
-     // random file name
-	  //let rd = Math.floor(Math.random() * 900000000) + 100000000;
-
     let name = `id_front_${nick}.png`
     name = md5(name+nick)+ '.png';
 
@@ -80,8 +75,6 @@ class Resize {
     return name;
   }
   static filenameBack(nick) {
-    // random file name
-	  //let rd = Math.floor(Math.random() * 900000000) + 100000000;
     let name = `id_back_${nick}.png`
     name = md5(name+nick)+ '.png';
 

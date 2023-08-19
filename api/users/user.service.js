@@ -11,7 +11,7 @@ const axios = require("axios");
 
 var dataSys = Helper.getConfig(fileSys);
 const Tele = require("../../auth/telegram_notify");
-const { SEND_THONG_BAO } = require("../../auth/notifi");
+// const { SEND_THONG_BAO } = require("../../auth/notifi");
 
 const createAddressBTC = `https://api.blockcypher.com/v1/btc/main/addrs?token=${dataSys.tokenBlockcypher}`;
 // 2000 request 1 ngày eth / btc
@@ -48,30 +48,8 @@ Date.prototype.getWeek = function () {
   return 1 + Math.ceil((firstThursday - target) / 604800000);
 };
 
-function getDateRangeOfWeek(weekNo) {
-  var d1 = new Date();
-  numOfdaysPastSinceLastMonday = eval(d1.getDay() - 1);
-  d1.setDate(d1.getDate() - numOfdaysPastSinceLastMonday);
-  var weekNoToday = d1.getWeek();
-  var weeksInTheFuture = eval(weekNo - weekNoToday);
-  d1.setDate(d1.getDate() + eval(7 * weeksInTheFuture));
-  var rangeIsFrom =
-    eval(d1.getFullYear() + 1) + "-" + d1.getMonth() + "-" + d1.getDate();
-  d1.setDate(d1.getDate() + 6);
-  var rangeIsTo =
-    eval(d1.getFullYear() + 1) + "-" + d1.getMonth() + "-" + d1.getDate();
-  return rangeIsFrom + " to " + rangeIsTo;
-}
-
+// tạo 2 bản ghi account mới 1 là demo 1 là live với u_id được tạo ngẫu nhiên
 function creatAccountUser(data) {
-  // db.query(
-  //     `SELECT email FROM account WHERE email = ?`,
-  //     [data.email], (error, results, fields) => {
-  //         if(error){
-  //             return callback(error);
-  //          }
-  //         if(!!results[0]) return;
-
   // tạo tài khoản demo
   db.query(
     `insert into account (email, type, u_id, created_at)
@@ -84,25 +62,16 @@ function creatAccountUser(data) {
                     values(?,1,?,now())`,
     [data.email, makeid(10)]
   );
-  //    }
-  // )
 }
-
+// cộng tiền hoa hồng cho tối đa 7 tầng và in vào commission_history 
 async function CongTienHoaHongVIP(email) {
   // kiểm tra F1 của mình là ai để cộng tiền là 50% của 100$
 
-  //var money = 100;
-  // let reSys = fs.readFileSync(fileSys);
-  // const redataSys = JSON.parse(reSys);
-
-  // let currUse = redataSys.typeCurrUseSys.toLowerCase();
-
   let lsComm = Helper.getConfig(fileCommissionVip);
 
-  // usdt 7 tầng
-  let hhVip = lsComm;
-  let refFrom, uplineID;
-  //
+  let hhVip = lsComm; // usdt 7 tầng
+  let refFrom /* ref id của người mua vip */, uplineID; /* ref id của người giới thiệu người đang mua vip */
+  // lấy refFrom và uplineID
   await new Promise((res, rej) => {
     db.query(
       `SELECT upline_id, ref_code, level_vip FROM users WHERE email = ?`,
@@ -122,7 +91,7 @@ async function CongTienHoaHongVIP(email) {
   for (let u = 0; u < hhVip.length; u++) {
     let amountDuocCong = hhVip[u].value * 1;
     if (uplineID == null) break; // kết thúc
-    db.query(
+    db.query( // cộng commission_vip và money_usdt của người giới thiệu cấp trên tính từ người đang mua vip 
       `UPDATE users SET commission_vip = commission_vip + ?, money_usdt = money_usdt + ? where ref_code = ?`,
       [amountDuocCong, amountDuocCong, uplineID],
       (error, results, fields) => {
@@ -132,7 +101,7 @@ async function CongTienHoaHongVIP(email) {
         // in vào lịch sử hoa hồng VIP
         // kiểm tra UPLINE ID của cấp trên
 
-        db.query(
+        db.query( // in vào commision_history
           `INSERT INTO commission_history (email, ref_id, upline_id, vip_commission, type, created_at) 
                     VALUES (?,?,?,?,?,now())`,
           [
@@ -146,7 +115,7 @@ async function CongTienHoaHongVIP(email) {
             if (error) {
               return callback(error);
             }
-            db.query(
+            db.query( // tiếp tục với các tầng còn lại đến khi không còn tầng nào nữa hoặc đến khi hết cả 7 tầng
               `SELECT upline_id FROM users WHERE ref_code = ?`,
               [
                 uplineID, // ref id của thằng F1
@@ -193,6 +162,7 @@ function formatPrice(value, minimum) {
 }
 
 module.exports = {
+  // SELECT nick_name FROM users WHERE nick_name = nick // check if nick_name is exist
   checkUserNickName: (nick, callback) => {
     db.query(
       `SELECT nick_name FROM users WHERE nick_name = ?`,
@@ -206,6 +176,8 @@ module.exports = {
     );
   },
 
+  // insert into users (email, nick_name, password, upline_id, ref_code, address_ETH, address_USDT, privateKey_ETH, privateKey_USDT, address_BTC, wif_BTC, privateKey_BTC, created_at)
+  // tạo account mới với thông tin trên rồi gửi tin nhắn telegram
   createAccount: (data, callback) => {
     if (data.upline_id === "") {
       data.upline_id = null;
@@ -244,6 +216,8 @@ module.exports = {
     });
   },
 
+  // insert into users (ref_code, marketing == 1, email, first_name, last_name, password, nick_name, address_ETH, address_USDT, privateKey_ETH, privateKey_USDT, address_BTC, wif_BTC, privateKey_BTC, level_vip, vip_user, active, created_at)
+  // tương tự như active user sau khi tạo xong user ở đây gọi creatAccountUser để tạo 2 account live và demo cho user với u_id được tạo ngẫu nhiên
   createUser: (data, callback) => {
     let account = web3.eth.accounts.create();
     axios.post(createAddressBTC).then((res) => {
@@ -282,6 +256,7 @@ module.exports = {
     });
   },
 
+  // select email from users where email = email // kiểm tra email đã tồn tại chưa 
   checkUserEmail: (email, callback) => {
     db.query(
       `select email from users where email = ?`,
@@ -294,7 +269,8 @@ module.exports = {
       }
     );
   },
-
+  
+  // select email from users where email = data.email and code_secure = data.code_secure phế vứt đi
   checkCodeSecure: (data, callback) => {
     db.query(
       `select email from users where email = ? and code_secure = ?`,
@@ -307,7 +283,8 @@ module.exports = {
       }
     );
   },
-
+  
+  // check if user who use this email have active == 1 or not
   checkActiveUser: (email, callback) => {
     db.query(
       `select active from users where email = ? and active = 1`,
@@ -320,30 +297,8 @@ module.exports = {
       }
     );
   },
-
+  // lấy thông tin user và account dựa trên email
   getInfoUser: (data, callback) => {
-    // db.query(
-    //     `select
-    //     users.email,
-    //     users.nick_name,
-    //     users.first_name,
-    //     users.last_name,
-    //     users.verified as verifi,
-    //     users.money_usdt as b,
-    //     users.vip_user as vip,
-    //     users.ref_code as ref,
-    //     users.id_front,
-    //     users.id_back,
-    //     users.active_2fa as 2fa,
-    //     users.language as 2fa,
-    //     account.* from users INNER JOIN account ON users.email = account.email WHERE users.email = ? AND account.type = 1`,
-    //     [data.email], (error, results, fields) => {
-    //         if(error){
-    //             return callback(error);
-    //          }
-    //          return callback(null, results[0])
-    //     }
-    // )
     var dataList = [];
 
     const redataSys = Helper.getConfig(fileSys);
@@ -410,7 +365,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM users WHERE deleted_at IS NULL ORDER BY id DESC
   getAllUser: (callback) => {
     db.query(
       `SELECT * FROM users WHERE deleted_at IS NULL ORDER BY id DESC`,
@@ -437,6 +392,8 @@ module.exports = {
     );
   },
 
+  // update users set email = ?, nick_name = ?, first_name = ?, last_name = ?, vip_user = ?, level_vip = ?, password = ?, updated_at=now() where id = ? hoặc
+  // update users set email = ?, nick_name = ?, first_name = ?, last_name = ?, vip_user = ?, level_vip = ?, updated_at=now() where id = ?
   updateUserById: (data, callback) => {
     if (!!data.password) {
       let qr = `update users set email = ?, nick_name = ?, first_name = ?, last_name = ?, vip_user = ?, level_vip = ?, password = ?, updated_at=now() where id = ?`;
@@ -481,7 +438,7 @@ module.exports = {
       );
     }
   },
-
+  // update users set first_name=?, last_name=?, country=?, so_cmnd = ?, verified = 2 where email = ?
   updateInfoVerify: (data, callback) => {
     db.query(
       `update users set first_name=?, last_name=?, country=?, so_cmnd = ?, verified = 2 where email = ?`,
@@ -500,7 +457,7 @@ module.exports = {
       }
     );
   },
-
+  // UPDATE users SET money_usdt = money_usdt - ?, money_btc = money_btc - ?, money_eth = money_eth - ?, money_paypal = money_paypal - ?, money_vn = money_vn - ? WHERE nick_name = ?
   addMoneyMember: (data, callback) => {
     db.query(
       `UPDATE users SET money_usdt = money_usdt - ?, money_btc = money_btc - ?, money_eth = money_eth - ?, money_paypal = money_paypal - ?, money_vn = money_vn - ? WHERE nick_name = ?`,
@@ -519,7 +476,8 @@ module.exports = {
       }
     );
   },
-
+  // update users set money_btc=money_btc+data.money_btc, money_eth=money_eth+data.money_eth, money_usdt=money_usdt+data.money_usdt, money_vn=money_vn+data.money_vn where id = data.id
+  // INSERT INTO add_money_history (email, nick_name, type, price_USDT, price_BTC, price_ETH, price_PAYPAL, price_VN, created_at)
   updateUserMoneyById: (data, callback) => {
     db.query(
       `update users set money_btc=money_btc+?, money_eth=money_eth+?, money_usdt=money_usdt+?, money_vn=money_vn+? where id = ?`,
@@ -554,7 +512,7 @@ module.exports = {
       }
     );
   },
-
+  // update user đặt active = 1 và tạo conde_secure tạo 2 account live và demo cho user này với u_id của account được tạo ngẫu nhiên
   activeUser: (data, callback) => {
     db.query(
       `update users set active = 1, code_secure = ? where email = ?`,
@@ -571,7 +529,7 @@ module.exports = {
       }
     );
   },
-
+  // UPDATE users SET password = data.password WHERE email = data.email
   updateUserPasswordByEmail: (data, callback) => {
     db.query(
       `UPDATE users SET password = ? WHERE email = ?`,
@@ -606,7 +564,7 @@ module.exports = {
     //     }
     // )
   },
-
+  // SELECT email, nick_name, password, active_2fa, secret_2fa, deleted_at FROM users WHERE email = email OR username = email
   getUserByUserEmail: (email, callback) => {
     db.query(
       `SELECT email, nick_name, password, active_2fa, secret_2fa, deleted_at FROM users WHERE email = ? OR username = ?`,
@@ -623,6 +581,7 @@ module.exports = {
     );
   },
 
+  // select email, nick_name, password from users where username = ? AND manage_supers = 1
   getAdminByAdminUsername: (username, callback) => {
     db.query(
       `select email, nick_name, password from users where username = ? AND manage_supers = 1`,
@@ -635,7 +594,8 @@ module.exports = {
       }
     );
   },
-
+  // update users set verified = ? where id = ?
+  // SELECT email FROM users WHERE id = ? dùng để send mes tele
   verifiedAccount: (data, callback) => {
     db.query(
       `update users set verified = ? where id = ?`,
@@ -660,7 +620,7 @@ module.exports = {
     );
   },
 
-  // get đại lý
+  // select * from users where vip_user = 1 order by id desc
   getListAgency: (callback) => {
     db.query(
       `select * from users where vip_user = 1 order by id desc`,
@@ -672,7 +632,8 @@ module.exports = {
       }
     );
   },
-
+  
+  // select COUNT(upline_id) as totalPeopel from users where upline_id = ?
   viewMemberAgency: (id, callback) => {
     db.query(
       `select COUNT(upline_id) as totalPeopel from users where upline_id = ?`,
@@ -685,7 +646,7 @@ module.exports = {
       }
     );
   },
-
+  // update account set balance = 1000 where email = ? AND type = 0
   reloadMoneyDemo: (email, callback) => {
     db.query(
       `update account set balance = 1000 where email = ? AND type = 0`,
@@ -698,7 +659,7 @@ module.exports = {
       }
     );
   },
-
+  // select money_usdt as balance from users where email = ?
   checkMoneyUser: (email, callback) => {
     db.query(
       `select money_usdt as balance from users where email = ?`,
@@ -711,7 +672,8 @@ module.exports = {
       }
     );
   },
-
+  // lấy u_id từ 2 account của user sau đó lấy tất cả lịch sử bet_history dựa trên u_id(tương ứng với id_account trong bet_history) 
+  // query account lấy 2 u_id rồi query bet_history dựa trên 2 u_id(id_account) này
   listHisBO: (email, callback) => {
     db.query(
       `select u_id from account where email = ? order by id desc`,
@@ -744,12 +706,10 @@ module.exports = {
         );
       }
     );
-
-    //
   },
-
+  // lấy money_usdt từ user kiểm tra nếu đủ thì trừ money_usdt trong user đi và tăng balance trong account của user rồi in vào lịch sử
   UsdtToLive: (data, callback) => {
-    db.query(
+    db.query( // lấy số dư money_usdt từ user
       `select money_usdt from users where email = ?`,
       [data.email],
       (error, results, fields) => {
@@ -757,13 +717,13 @@ module.exports = {
           return callback(error);
         }
 
-        if (results[0].money_usdt >= data.m) {
+        if (results[0].money_usdt >= data.m) { // kiểm tra xem số dư money_usdt có đủ không 
           //=======
-          db.query(
+          db.query( // trừ số dư money_usdt trong user đi
             `update users set money_usdt = money_usdt - ? where email = ?`,
             [data.m, data.email]
           );
-          db.query(
+          db.query( // cộng số dư trong account 
             `update account set balance = balance + ? where email = ? AND type = 1`,
             [data.m, data.email],
             (error, results, fields) => {
@@ -798,7 +758,7 @@ module.exports = {
       }
     );
   },
-
+  // tạo bản ghi trade_history về user nạp tiền và chờ duyệt
   createDepositHistory: (data, callback) => {
     db.query(
       `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
@@ -822,9 +782,9 @@ module.exports = {
       }
     );
   },
-
+  // lấy số dư của tk live => kiểm tra nếu số dư đủ trừ số dư trong account + money_usdt trong users in vào trade_history
   LiveToUsdt: (data, callback) => {
-    db.query(
+    db.query( // lấy số dư 
       `select balance from account where email = ? AND type = 1`,
       [data.email],
       (error, results, fields) => {
@@ -832,12 +792,12 @@ module.exports = {
           return callback(error);
         }
 
-        if (results[0].balance >= data.m) {
-          db.query(
+        if (results[0].balance >= data.m) { // kiểm tra số dư có đủ không
+          db.query( // trừ số dư trong tài khoản live
             `update account set balance = balance - ? where email = ? AND type = 1`,
             [data.m, data.email]
           );
-          db.query(
+          db.query( // tăng số tiền usdt lên trong users
             `update users set money_usdt = money_usdt + ? where email = ?`,
             [data.m, data.email],
             (error, results, fields) => {
@@ -873,9 +833,11 @@ module.exports = {
     );
   },
 
+  // lấy money_usdt và verified của người gửi nếu thoả mãn thì thực hiện chuyển tiền
+  // trừ money_usdt user gửi và cộng money_usdt user nhận in vào trade_history là rt nội bộ
   WithDrawalNoiBo: (data, callback) => {
     dataSys = Helper.getConfig(fileSys);
-    db.query(
+    db.query( // lấy số dư money_usdt của user
       `select money_usdt, verified from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -891,9 +853,8 @@ module.exports = {
         let phi = dataSys.feeRutUSDTNoiBo;
         let tongPhi = Number(data.amS) + Number(phi);
 
-        if (results[0].money_usdt >= tongPhi) {
-          //======= Từ tiền tài khoản mình
-          db.query(
+        if (results[0].money_usdt >= tongPhi) { // nếu đủ tiền 
+          db.query( // trừ tiền người gửi 
             `update users set money_usdt = money_usdt - ? where email = ?`,
             [tongPhi, data.email]
           );
@@ -901,29 +862,28 @@ module.exports = {
             `🌟Người dùng ${data.nick_name} vừa thực hiện rút tiền NỘI BỘ tới Nick Name: ${data.address} với <b>$${data.amS}</b>.!`
           );
 
-          SEND_THONG_BAO(
-            data.email,
-            data.email,
-            "Rút tiền nội bộ",
-            `-Số lượng: <b>${formatPrice(
-              data.amS,
-              2
-            )} USDT</b><br>-Người nhận: <b>${data.address}</b>`
-          );
+          // SEND_THONG_BAO(
+          //   data.email,
+          //   data.email,
+          //   "Rút tiền nội bộ",
+          //   `-Số lượng: <b>${formatPrice(
+          //     data.amS,
+          //     2
+          //   )} USDT</b><br>-Người nhận: <b>${data.address}</b>`
+          // );
           GET_EMAIL_BY_NICKNAME(data.address).then((email) => {
-            SEND_THONG_BAO(
-              data.email,
-              email,
-              "Nạp tiền nội bộ",
-              `-Số lượng: <b>${formatPrice(
-                data.amS,
-                2
-              )} USDT</b><br>-Người gửi: <b>${data.nick_name}</b>`
-            );
+            // SEND_THONG_BAO(
+            //   data.email,
+            //   email,
+            //   "Nạp tiền nội bộ",
+            //   `-Số lượng: <b>${formatPrice(
+            //     data.amS,
+            //     2
+            //   )} USDT</b><br>-Người gửi: <b>${data.nick_name}</b>`
+            // );
           });
 
-          //======= cộng tiền vào tài khoản người khác
-          db.query(
+          db.query( // cộng tiền vào tài khoản người nhận 
             `update users set money_usdt = money_usdt + ? where nick_name = ?`,
             [Number(data.amS), data.address],
             (error, results, fields) => {
@@ -964,11 +924,11 @@ module.exports = {
       }
     );
   },
-
+  // nếu số dư money_usdt của user đủ thì trừ money_usdt của user gửi tăng money_usdt của user nhận và in vào trade_history ở đâu đó sẽ accept và tiến hành chuyển tiền ví ETH
   WithDrawalERC: (data, callback) => {
     dataSys = Helper.getConfig(fileSys);
 
-    db.query(
+    db.query( // lấy số dư money_usdt của users gửi 
       `select money_usdt from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -978,9 +938,8 @@ module.exports = {
         // phí rút usdt
         let phi = dataSys.feeRutETHERC20;
         let tongPhi = Number(data.amS) + Number(phi);
-        if (results[0].money_usdt >= tongPhi) {
-          //======= Từ tiền tài khoản mình
-          db.query(
+        if (results[0].money_usdt >= tongPhi) { // nếu đủ tiền thì tiến hành rút
+          db.query( // trừ tiền tài khoản users gửi
             `update users set money_usdt = money_usdt - ? where email = ?`,
             [tongPhi, data.email],
             (error, results, fields) => {
@@ -994,7 +953,7 @@ module.exports = {
               Tele.sendMessRut(`ARES-CHECK check ${data.nick_name}`);
 
               //==== IN vào lịch sử
-              db.query(
+              db.query( 
                 `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, network, created_at)
                          values(?,?,?,?,?,?,?,?,?,?,now())`,
                 [
@@ -1023,11 +982,11 @@ module.exports = {
       }
     );
   },
-
-  WithDrawalBSC: (data, callback) => {
+  // nếu money_usdt của user đủ và đã verified thì tiến hành trừ money_usdt của user và lưu vào trade_history chờ duyệt ở đâu đó 
+  WithDrawalBSC: (data, callback) => { // cái hàm này ko có chỗ nào thực hiện chuyển tiền về ví khách cả
     dataSys = Helper.getConfig(fileSys);
 
-    db.query(
+    db.query( // lấy money_usdt và tình trạng verified của user 
       `select money_usdt, verified from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -1043,10 +1002,10 @@ module.exports = {
         let phi = Number(dataSys.feeRutUSDTBEP20);
 
         let tongPhi = Number(data.amS) + phi;
-        if (results[0].money_usdt >= tongPhi) {
+        if (results[0].money_usdt >= tongPhi) { // nếu đủ tiền và đã verified thì tiến hành
           //======= Trừ tiền tài khoản mình
           db.query(
-            `UPDATE users SET money_usdt = money_usdt - ? WHERE email = ?`,
+            `UPDATE users SET money_usdt = money_usdt - ? WHERE email = ?`, // trừ money_usdt của users gửi
             [tongPhi, data.email],
             (error, results, fields) => {
               if (error) {
@@ -1059,12 +1018,12 @@ module.exports = {
               Tele.sendMessRut(`ARES-CHECK check ${data.nick_name}`);
 
               GET_EMAIL_BY_NICKNAME(data.nick_name).then((email) => {
-                SEND_THONG_BAO(
-                  data.email,
-                  email,
-                  "Rút tiền BEP20",
-                  `-Số lượng: <b>${formatPrice(data.amS, 2)} USDT</b>`
-                );
+                // SEND_THONG_BAO(
+                //   data.email,
+                //   email,
+                //   "Rút tiền BEP20",
+                //   `-Số lượng: <b>${formatPrice(data.amS, 2)} USDT</b>`
+                // );
               });
 
               //==== IN vào lịch sử
@@ -1098,7 +1057,7 @@ module.exports = {
       }
     );
   },
-
+  // nếu số dư money_paypal của người gửi đủ thì trừ số dư money_paypal của người thêm vào lịch sử trade_history và chờ duyệt và gửi money_paypal ở đâu đó trong hệ thống
   WithDrawalPaypalAc: (data, callback) => {
     db.query(
       `select money_paypal from users where email = ? AND nick_name = ?`,
@@ -1144,9 +1103,9 @@ module.exports = {
       }
     );
   },
-
+  // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận 
   WithDrawalPaypalNB: (data, callback) => {
-    db.query(
+    db.query( // lấy số dư money_paypal của user 
       `select money_paypal from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -1158,23 +1117,18 @@ module.exports = {
         let tongPhi = Number(data.amS) + Number(phi);
 
         if (results[0].money_paypal >= tongPhi) {
-          //======= Từ tiền tài khoản mình
-          db.query(
+          db.query( // trừ money_paypal của người gửi 
             `update users set money_paypal = money_paypal - ? where email = ?`,
             [tongPhi, data.email]
           );
-          //======= cộng tiền vào tài khoản người khác
-          db.query(
+          db.query( // cộng money_paypal của người nhận 
             `update users set money_paypal = money_paypal + ? where nick_name = ?`,
             [Number(data.amS), data.nick],
             (error, results, fields) => {
               if (error) {
                 return callback(error);
               }
-
-              //==== IN vào lịch sử
-
-              db.query(
+              db.query( // thêm bản ghi trade_history 
                 `insert into trade_history (from_u, to_u, type_key, type, currency, amount, note, status, created_at) 
                             values (?,?,?,?,?,?,?,?,now())`,
                 [
@@ -1203,7 +1157,7 @@ module.exports = {
       }
     );
   },
-
+  // select, money_usdt as usdt, money_eth as eth, money_btc as btc, money_paypal as paypal, from users where email = ?
   BalanceWallet: (email, callback) => {
     db.query(
       `select 
@@ -1221,7 +1175,7 @@ module.exports = {
       }
     );
   },
-
+  // giảm money_usdt của user đi và tăng balance của account live lên tạo bản ghi trade_history mới
   DepositToWallet: (data, callback) => {
     const redataSys = Helper.getConfig(fileSys);
 
@@ -1240,7 +1194,7 @@ module.exports = {
 
     // nạp nhanh
     if (!!money && money >= 11) {
-      db.query(
+      db.query( // trừ money_usdt của user đi
         `update users set money_${currUse} = money_${currUse} - ? where email = ?`,
         [data.m, data.email],
         (error, results, fields) => {
@@ -1249,13 +1203,13 @@ module.exports = {
           }
 
           //update vào tài khoản thật
-          db.query(
+          db.query( // cộng balance của account lên
             `update account set balance = balance + ? where email = ? and type = 1`,
             [money, data.email]
           );
 
           //==== IN vào lịch sử
-          db.query(
+          db.query( // in vào lịch sử với hình thức là nạp nhanh
             `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
                       values(?,?,?,?,?,?,?,?,?,now())`,
             [
@@ -1278,7 +1232,7 @@ module.exports = {
       return callback(null, []);
     }
   },
-
+  // trừ tiền mua vip và tăng vip cho user in vào trade_history(nd: mua vip) cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user 
   UserBuyVIP: (data, callback) => {
     const redataSys = Helper.getConfig(fileSys);
 
@@ -1292,7 +1246,7 @@ module.exports = {
       money = data.amount / currUse.quotePriceBTC;
     }
 
-    db.query(
+    db.query( // trừ tiền mua vip và up lên vip level_vip = 1 
       `update users set money_${currUse} = money_${currUse} - ?, vip_user = 1, level_vip = 1 where email = ?`,
       [money, data.email],
       (error, results, fields) => {
@@ -1300,7 +1254,7 @@ module.exports = {
           return callback(error);
         }
         //==== IN vào lịch sử
-        db.query(
+        db.query( // in vào trade_history với nội dung mua vip
           `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
                 values(?,?,?,?,?,?,?,?,?,now())`,
           [
@@ -1328,16 +1282,16 @@ module.exports = {
       }
     );
   },
-
+  // lấy rất nhiều thông tin về phân cấp 
   getNguoiGioiThieu: async (email, callback) => {
     let obj = {
-        nick: "", // tên người giới thệu
-        tsdl: 0, // tổng số đại lý
-        tsngd: 0, // tổng số nhà giao dịch
-        hhdl: 0, // Hoa hồng đại lý
+        nick: "", // tên người giới thệu (cấp trên của user)
+        tsdl: 0, // tổng số đại lý (người có vip_user=1 ở tất cả các cấp)
+        tsngd: 0, // tổng số nhà giao dịch (user cấp dưới ở tất cả các cấp)
+        hhdl: 0, // Hoa hồng đại lý vip_user
         hhgd: 0, // hoa hồng giao dịch
         hhttisMe: 0, // hoa hồng tuần của f1 đại lý
-        tsdlisMe: 0, // tổng số đại lý
+        tsdlisMe: 0, // tổng số đại lý cấp 1 
         tslgdCD1: 0, // tổng số lượng giao dịch tháng này
         tslgdCD2: 0, // tổng số lượng giao dịch tháng 2
         tslgdCD3: 0, // tổng số lượng giao dịch tháng 3
@@ -1411,7 +1365,6 @@ module.exports = {
       cap14: [],
       cap15: [],
     };
-
     let cap1 = false,
       cap2 = false,
       cap3 = false,
@@ -1543,9 +1496,9 @@ module.exports = {
         await sleep(50);
       }
     }
-
-    let TSNGD = 0,
-      TSDL = 0;
+    // {cap1: [{ref_code, vip_user}...], cap2...}
+    let TSNGD = 0, // tổng số nhà giao dịch 
+      TSDL = 0; // tổng số dại lý
     for (let l in listData) {
       let d = listData[l];
       if (d.length > 0) {
@@ -1559,73 +1512,6 @@ module.exports = {
     obj.tsngd = TSNGD;
     obj.tsdl = TSDL;
 
-    //==================================
-
-    // await new Promise((resolve, reject)=>{
-    //     // lấy danh sách thành viên đã đăng ký link giới thiệu ( tổng số nhà giao dịch )
-
-    //     db.query(
-    //         `select COUNT(upline_id) AS tsngd FROM users WHERE upline_id = ?`,
-    //         [
-    //             refForMe
-    //         ],(error, results, fields) => {
-    //             if(error){
-    //                 resolve([]);
-    //             }
-
-    //             if(results[0]){
-    //                 obj.tsngd = results[0].tsngd
-    //                 //obj.hhgd = results[0].hhgd + com_for_me
-    //             }
-    //             resolve();
-    //     })
-    //     // kết thúc
-
-    // })
-    // await new Promise((resolve, reject)=>{
-    //     // tổng số đại lý ( đã mua vip )
-    //     db.query(
-    //         `SELECT COUNT(vip_user) AS tsdl FROM users WHERE upline_id = ? AND vip_user = 1`,
-    //         [
-    //             refForMe
-    //         ],(error, results, fields) => {
-    //             if(error){
-    //                 resolve([]);
-    //             }
-
-    //             if(results[0]){
-    //                 obj.tsdl = results[0].tsdl
-    //             }
-    //             resolve();
-    //     })
-    //     // kết thúc
-
-    // })
-
-    //await new Promise((resolve, reject)=>{
-    //    // tổng số đại lý ( đã mua vip )
-    //    db.query(
-    //        `select commission_vip AS hhdl FROM users WHERE ref_code = ?`,
-    //        [
-    //            refForMe
-    //        ],(error, results, fields) => {
-    //            if(error){
-    //                resolve([]);
-    //            }
-    //
-    //           if(results[0]){
-    //               obj.hhdl = results[0].hhdl
-    //           }
-    //           resolve();
-    //   })
-    // kết thúc
-
-    //})
-
-    // của bản thân mình
-    //==============================
-    //==============================
-    //==============================
     let listAgent = await new Promise((resolve, reject) => {
       // tổng số đại lý ( đã mua vip ) của bản thân
       // AND vip_user = ?
@@ -1646,7 +1532,7 @@ module.exports = {
         }
       );
     });
-
+    // tính hoa hồng tuần tổng để tăng mức độ vip có vẻ như sai logic 
     await new Promise((resolve, reject) => {
       // tổng số hoa hồng đại lý của bản thân tuần này
       let min = 0;
@@ -1779,20 +1665,6 @@ module.exports = {
         }
       );
     });
-    // let uIdAccount = await new Promise((resolve, reject)=>{
-    //     // get account name
-    //     db.query(
-    //         `SELECT u_id FROM account WHERE email = ? AND type = 1`,
-    //         [
-    //             email
-    //         ],
-    //         (error, results, fields) => {
-    //             if(error){
-    //                 return callback(error);
-    //             }
-    //             resolve(results[0].u_id);
-    //         })
-    // })
 
     await new Promise((resolve, reject) => {
       // tổng số lượng giao dịch cấp dưới tháng này
@@ -2019,7 +1891,9 @@ module.exports = {
 
     return callback(null, obj);
   },
-
+  // từ account và bet_history lấy các dữ liệu sau: 
+  // from account lấy profits, revenue, trades, win_rate this 
+  // from bet_history lấy COUNT(amount_win), COUNT(amount_lose), COUNT(buy_sell) AS totalBUY, COUNT(buy_sell) AS totalSell
   getBoStatistics: async (email, callback) => {
     // lấy tài khoản thực của email
 
@@ -2149,7 +2023,7 @@ module.exports = {
 
     return callback(null, obj);
   },
-
+  // lấy u_id từ account rồi sau đó dựa vào u_id(id_account) lấy from bet_history lấy amount_bet, amount_lose, amount_win, buy_sell, close, open, session, currency
   getListHisOrder: (email, callback) => {
     // lấy tài khoản thực của email
     db.query(
@@ -2189,7 +2063,8 @@ module.exports = {
       }
     );
   },
-
+  // trong 1 khoảng thời gian nhất định
+  // lấy u_id từ account rồi sau đó dựa vào u_id(id_account) lấy from bet_history lấy amount_bet, amount_lose, amount_win, buy_sell, close, open, session, currency
   getListHisOrderDate: (data, callback) => {
     // lấy tài khoản thực của email
     db.query(
@@ -2229,7 +2104,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM trade_history WHERE from_u = ? OR to_u = ? ORDER BY id DESC LIMIT 10
   getListHisTradeWallet: (nick, callback) => {
     db.query(
       `SELECT * FROM trade_history WHERE from_u = ? OR to_u = ? ORDER BY id DESC LIMIT 10`,
@@ -2253,7 +2128,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM trade_history WHERE from_u = ? AND type_key != ? ORDER BY id DESC LIMIT ? OFFSET ?
   getListHisTradeWalletPage: (data, callback) => {
     // lấy tài khoản thực của email
     let count_per_page = 10;
@@ -2272,7 +2147,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM commission_history WHERE upline_id = user_ref_code AND type = ? OR type = ? ORDER BY id DESC LIMIT 10
   getListHisTradeWalletHH: (email, callback) => {
     db.query(
       `SELECT ref_code FROM users WHERE email = ?`,
@@ -2304,7 +2179,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM commission_history WHERE upline_id = user_ref_code AND type = ? OR type = ? ORDER BY id DESC LIMIT ? OFFSET ?
   getListHisTradeWalletHHPage: (data, callback) => {
     // lấy tài khoản thực của email
     let count_per_page = 10;
@@ -2329,7 +2204,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM trade_history WHERE (from_u = ? OR to_u = ?) AND (type_key = ? OR type_key = ?) ORDER BY id DESC LIMIT 10
   getListHisTradeWalletWGD: (nick, callback) => {
     // lấy tài khoản thực của email
     db.query(
@@ -2355,7 +2230,7 @@ module.exports = {
       }
     );
   },
-
+  // SELECT * FROM trade_history WHERE from_u = ? AND type_key = ? OR type_key = ? ORDER BY id DESC LIMIT ? OFFSET ? 
   getListHisTradeWalletWGDPage: (data, callback) => {
     // lấy tài khoản thực của email
     let count_per_page = 10;
@@ -2374,9 +2249,8 @@ module.exports = {
       }
     );
   },
-
+  // lấy SUM(pending_commission), COUNT(pending_commission), COUNT(upline_id)
   getComDetails: (email, callback) => {
-    // lấy
     db.query(
       `select ref_code from users where email = ?`,
       [email],
@@ -2427,7 +2301,7 @@ module.exports = {
       }
     );
   },
-
+  // lấy SUM(pending_commission), COUNT(pending_commission), COUNT(upline_id) theo kiểu phân trang 
   getComDetailsPage: (data, callback) => {
     // lấy tài khoản thực của email
     let count_per_page = 10;
@@ -2467,7 +2341,7 @@ module.exports = {
       }
     );
   },
-
+  //SUM(pending_commission), SUM(personal_trading_volume), COUNT(pending_commission) hoặc SUM(vip_commission) nếu user là vip
   getComDetailsDate: async (data, callback) => {
     let Rs = [];
 
@@ -2552,7 +2426,7 @@ module.exports = {
     });
     return callback(null, Rs);
   },
-
+  // lấy danh sách cấp dưới có dạng {cap1 = [{level_vip, pricePlay AS tklgd, ref_code, upline_id, nick_name}...], cap2...}
   getAgencySearchLevel: async (data, callback) => {
     let dt = moment().tz("Asia/Ho_Chi_Minh");
     let dt1 = moment().tz("Asia/Ho_Chi_Minh");
@@ -2561,15 +2435,6 @@ module.exports = {
     let cach30ngay = dt.subtract(30, "days").format("YYYY-MM-DD");
     let cach7ngay = dt1.subtract(7, "days").format("YYYY-MM-DD");
     let cach1ngay = dt2.subtract(1, "days").format("YYYY-MM-DD");
-
-    //let currentDate = new Date()
-    //let cach30ngay =  new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDay() - 30)
-    //let cach7ngay =  new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDay() - 7)
-    //let cach1ngay =  new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDay() - 1)
-
-    //let c30n =  cach30ngay.getFullYear() + '-' + cach30ngay.getMonth() + '-' + cach30ngay.getDay()
-    //let c7n =  cach7ngay.getFullYear() + '-' + cach7ngay.getMonth() + '-' + cach7ngay.getDay()
-    //let c1n =  cach1ngay.getFullYear() + '-' + cach1ngay.getMonth() + '-' + cach1ngay.getDay()
 
     let c30n = cach30ngay;
     let c7n = cach7ngay;
@@ -2629,46 +2494,6 @@ module.exports = {
         }
       );
     });
-
-    // let dataList = await new Promise((res, rej) => {
-    // 	//SELECT  upline_id, ref_code
-    // 	//FROM (SELECT * FROM users
-    //     //            ORDER BY upline_id) users_sorted,
-    //     //            (SELECT @pv := 'RYIFCWS') initialisation
-    //     //    WHERE find_in_set(upline_id, @pv)
-    //     //    AND length(@pv := concat(@pv, ',', ref_code));
-
-    //     db.query(`with recursive cte (level_vip, tklgd, ref_code, upline_id, nick_name) as (
-    // 			  select     level_vip,
-    // 						 pricePlay,
-    // 						 ref_code,
-    // 						 upline_id,
-    // 						 nick_name
-    // 			  from       users
-    // 			  where      upline_id = ?
-    // 			  union all
-    // 			  select     p.level_vip,
-    // 						 p.pricePlay,
-    // 						 p.ref_code,
-    // 						 p.upline_id,
-    // 						 p.nick_name
-    // 			  from       users p
-    // 			  inner join cte
-    // 					  on p.upline_id = cte.ref_code
-    // 			)
-    // 			select * from cte;`,
-    //         [
-    // 			refID
-    // 		], (error, result, fields) => {
-    // 			//console.log(result);
-    //             //let count = result.length;
-    //             //if(count > 0){
-    //                 res(result)
-    //             //}
-    //         }
-    //     )
-
-    // });
 
     let cap1 = false,
       cap2 = false,
@@ -2804,42 +2629,6 @@ module.exports = {
       }
     }
 
-    //if(cap7){
-    //   for(let i = 0;  i < listData['cap7'].length; i++){
-    //       db.query(
-    //           `SELECT level_vip, pricePlay AS tklgd, ref_code, upline_id, nick_name FROM users WHERE upline_id = ?`,
-    //           [
-    //               listData['cap7'][i].ref_code
-    //           ], (error, result, fields) => {
-    //               if(result.length > 0){
-    //                   result.forEach((ele) => {
-    //                       listData['cap7'].push(ele);
-    //                   });
-    //                  //cap7 = true;
-    //              }
-    //          }
-    //      )
-    //      await sleep(50);
-    //  }
-    //}
-
-    // if(dataList.length > 0){
-    //     let u = 0, check = '';
-    //     dataList.forEach((ele) => {
-    // 		if(check != ele.upline_id){
-    // 			u++;
-    // 			check = ele.upline_id;
-    // 		}
-    // 		if(u <= 7){
-    // 			listData[`cap${u}`].push(ele);
-    // 		}
-
-    //     })
-
-    // }
-
-    //await sleep(100);
-
     for (let i = 0; i < listData[`cap${Level}`].length; i++) {
       let qrr = `SELECT SUM(pending_commission) AS thhn FROM commission_history WHERE ref_id = ? AND type = ? AND created_at > '${ac}'`;
       db.query(
@@ -2858,7 +2647,8 @@ module.exports = {
 
     return callback(null, listData[`cap${Level}`]);
   },
-
+  // select level_vip, pricePlay AS tklgd, nick_name, ref_code from users where upline_id = ? AND nick_name LIKE CONCAT('%${name}%') ORDER BY id DESC hoặc
+  // select level_vip, pricePlay AS tklgd, nick_name, ref_code from users where upline_id = ? AND (nick_name LIKE CONCAT('%${name}%') AND created_at > '${ac}') ORDER BY id DESC
   getAgencySearchName: async (data, callback) => {
     if (data.name == "") return callback(null);
 
@@ -2949,7 +2739,7 @@ module.exports = {
 
     return callback(null, listData);
   },
-
+  // UPDATE users SET active_2fa = 1, secret_2fa = ?, code_secure = ? WHERE email = ?
   updateSecret2FA: (data, callback) => {
     db.query(
       `UPDATE users SET active_2fa = 1, secret_2fa = ?, code_secure = ? WHERE email = ?`,
@@ -2962,7 +2752,7 @@ module.exports = {
       }
     );
   },
-
+  // UPDATE users SET active_2fa = 0, secret_2fa = null WHERE email = ?
   Disabled2FA: (email, callback) => {
     db.query(
       `UPDATE users SET active_2fa = 0, secret_2fa = null WHERE email = ?`,
@@ -2988,7 +2778,7 @@ module.exports = {
       }
     );
   },
-
+  // lấy secret_2fa là cái mã qr lúc đầu hệ thống tạo ra user
   getSecrect2FA: (email, callback) => {
     db.query(
       `select secret_2fa from users where email = ?`,
@@ -3003,6 +2793,7 @@ module.exports = {
     );
   },
 
+  // select code_secure, password from users where email = ? AND code_secure = ?
   checkCodeSecure2FA: (data, callback) => {
     db.query(
       `select code_secure, password from users where email = ? AND code_secure = ?`,
@@ -3017,11 +2808,15 @@ module.exports = {
     );
   },
 
+  // tại users lấy tsNDK, Sum(money_vn), Sum(money_paypal), Sum(money_eth), Sum(money_btc), Sum(money_usdt), Sum(userVerified = 1), Sum(userVip_user=1) // 8
+  // tại trade_history SUM(amount, usdt), SUM(pay_fee, phí), SUM(real_amount, bnb), COUNT(from_u ts nguoi nt) // 4
+  // tại bet_history SUM(amount_win), SUM(amount_lose) // 2
+  // tại commission_history SUM(pending_commission)  // 1
   getListAnalytics: async (data, callback) => {
     const obj = {
-      nNDK: 0, // số người đăng ký
-      nNDXM: 0, // số người xác minh
-      nDL: 0, // số đại lý ( thành viên VIP )
+      nNDK: 0, // số người đăng ký users
+      nNDXM: 0, // số người xác minh users
+      nDL: 0, // số đại lý ( thành viên VIP ) users
       tsTN: 0, // tổng số tiền nạp
 
       tsNNT: 0, // tổng số người nạp tiền
@@ -3029,9 +2824,10 @@ module.exports = {
       tsNNT7N: 0, // tổng số người nạp tiền 7 ngày qua
       tsFee: 0, // thuế phí
       tsTNFEE: 0, // tổng số thu nhập ( trừ ra thuế phí)
+      
+      // users
       tsTNPAYPAL: 0, // tổng số thu nhập người dùng
-
-      tsTNUSD: 0, // tổng số tiền nạp USD,
+      tsTNUSD: 0, // tổng số tiền nạp USD, trade_history
       tsTNBTC: 0, // tổng số tiền nạp Bitcoin
       tsTNETH: 0, // tổng số tiền nạp ETH
       tsTNVN: 0, // tổng số tiền nạp VN
@@ -3054,7 +2850,6 @@ module.exports = {
 
           obj.nNDK = results[0].nNDK;
           obj.tsTNPAYPALN = results[0].tsTNPAYPAL;
-
           obj.tsTNUSDN = results[0].tsTNUSD;
           obj.tsTNBTCN = results[0].tsTNBTC;
           obj.tsTNETHN = results[0].tsTNETH;
@@ -3095,8 +2890,6 @@ module.exports = {
     });
 
     await new Promise((res, rej) => {
-      //===================
-      //===================
       db.query(
         `SELECT SUM(amount) AS tsTNUSD, SUM(pay_fee) AS Fee, SUM(real_amount) AS tnBNB FROM trade_history WHERE type_key = ? AND status = 1`,
         ["nt"],
@@ -3116,8 +2909,6 @@ module.exports = {
     });
 
     await new Promise((res, rej) => {
-      //===================
-      //===================
       db.query(
         `SELECT COUNT(from_u) as tsNNT FROM trade_history WHERE status = 1 AND type_key = ? GROUP BY from_u`,
         ["nt"],
@@ -3187,7 +2978,7 @@ module.exports = {
 
     return callback(null, obj);
   },
-
+  // UPDATE users SET marketing = ?, updated_at=now() WHERE id = ?
   changeAccType: (data, callback) => {
     db.query(
       `UPDATE users SET marketing = ?, updated_at=now() WHERE id = ?`,
@@ -3216,7 +3007,7 @@ module.exports = {
       }
     );
   },
-
+  // UPDATE users SET password = ? WHERE id = ?
   changPassAd: (data, callback) => {
     db.query(
       `UPDATE users SET password = ? WHERE id = ?`,
@@ -3229,11 +3020,11 @@ module.exports = {
       }
     );
   },
-
+  // lấy thông tin giao dịch của cấp dưới tần 1 trong các khoảng thời gian khác nhau
+  // và lấy thông tin trong 7 tầng phía dưới có dạng {cap1:[{level_vip, pricePlay AS tklgd, priceWin, priceLose, ref_code, upline_id, nick_name}...], cap2...}
   getListF1F7: async (data, callback) => {
     let refID = data.ref;
-    //let listCap = [];
-    // lấy danh sách 7 cấp dưới của mình
+
     let listData = {
       cap1: [],
       cap2: [],
@@ -3251,33 +3042,8 @@ module.exports = {
       cap14: [],
       cap15: [],
     };
-    // let listCap = {
-    // 	"cap1": [],
-    // 	"cap2": [],
-    // 	"cap3": [],
-    // 	"cap4": [],
-    // 	"cap5": [],
-    // 	"cap6": [],
-    // 	"cap7": []
-    // };
-    //listCap['cap1'].push(refID);
 
     let obj = {};
-
-    // let uIdAccount = await new Promise((resolve, reject)=>{
-    //     // get account name
-    //     db.query(
-    //         `SELECT u_id FROM account WHERE email = ? AND type = 1`,
-    //         [
-    //             data.email
-    //         ],
-    //         (error, results, fields) => {
-    //             if(error){
-    //                 return callback(error);
-    //             }
-    //             resolve(results[0].u_id);
-    //         })
-    // })
 
     await new Promise((resolve, reject) => {
       // tổng số lượng giao dịch cấp dưới tháng này
@@ -3354,29 +3120,6 @@ module.exports = {
         }
       );
     });
-
-    // lấy danh sách 7 cấp
-    // let max = false;
-
-    // for(let i = 0; i < 7; i++){
-    //     db.query(
-    //         `SELECT ref_code FROM users WHERE upline_id = ?`,
-    //         [
-    //             refID
-    //         ], (error, result, fields) => {
-    //             if(result.length > 0){
-    //                 result.forEach((ele) => {
-    //                     listCap['cap1'].push(ele.ref_code);
-    //                 })
-    //                 //refID = result[0].ref_code;
-    //             }else{
-    //                 max = true;
-    //             }
-    //         }
-    //     )
-    //     if(max) break;
-    //     await sleep(200);
-    // }
 
     let cap1 = false,
       cap2 = false,
@@ -3510,77 +3253,6 @@ module.exports = {
       }
     }
 
-    //if(cap7){
-    //   for(let i = 0;  i < listData['cap7'].length; i++){
-    //      db.query(
-    //           `SELECT level_vip, pricePlay AS tklgd, ref_code, upline_id, nick_name FROM users WHERE upline_id = ?`,
-    //         [
-    //               listData['cap7'][i].ref_code
-    //          ], (error, result, fields) => {
-    //              if(result.length > 0){
-    //                   result.forEach((ele) => {
-    //                      listData['cap7'].push(ele);
-    //                   });
-    //cap7 = true;
-    //               }
-    //           }
-    //      )
-    //      await sleep(50);
-    //  }
-    // }
-
-    // await new Promise((res, rej) => {
-    // 	//SELECT  upline_id, ref_code
-    // 	//FROM (SELECT * FROM users
-    //     //            ORDER BY upline_id) users_sorted,
-    //     //            (SELECT @pv := 'RYIFCWS') initialisation
-    //     //    WHERE find_in_set(upline_id, @pv)
-    //     //    AND length(@pv := concat(@pv, ',', ref_code));
-
-    //     db.query(`with recursive cte (level_vip, tklgd, ref_code, upline_id, nick_name) as (
-    // 			  select     level_vip,
-    // 						 pricePlay,
-    // 						 ref_code,
-    // 						 upline_id,
-    // 						 nick_name
-    // 			  from       users
-    // 			  where      upline_id = ?
-    // 			  union all
-    // 			  select     p.level_vip,
-    // 						 p.pricePlay,
-    // 						 p.ref_code,
-    // 						 p.upline_id,
-    // 						 p.nick_name
-    // 			  from       users p
-    // 			  inner join cte
-    // 					  on p.upline_id = cte.ref_code
-    // 			)
-    // 			select * from cte;`,
-    //         [
-    // 			refID
-    // 		], (error, result, fields) => {
-
-    //             let count = result.length;
-    // 			if(count === 0) res();
-    //             if(count > 0){
-    //                 let i = 0, u = 0, check = '';
-    //                 result.forEach((ele) => {
-    // 					if(check != ele.upline_id){
-    // 						u++;
-    // 						check = ele.upline_id
-    // 					}
-    // 					if(u <= 7){
-    // 						listData[`cap${u}`].push(ele);
-    // 					}
-    // 					res();
-    //                 })
-
-    //             }
-    //         }
-    //     )
-
-    // });
-
     let listD = {
       data: listData,
       obj: obj,
@@ -3588,7 +3260,7 @@ module.exports = {
 
     return callback(null, listD);
   },
-
+  // SELECT * FROM commission_history WHERE email = ? AND type = ?
   getListCmsHis: async (data, callback) => {
     let email = data.e;
 
@@ -3606,10 +3278,9 @@ module.exports = {
 
     return callback(null, rs);
   },
-
+  // SELECT * FROM notifi WHERE cu_email = ? OR email = ? ORDER BY id DESC
   getListNotifi: async (data, callback) => {
     let email = data.e;
-
     let rs = [];
     await new Promise((resolve, reject) => {
       db.query(
@@ -3625,7 +3296,7 @@ module.exports = {
 
     return callback(null, rs);
   },
-
+  // UPDATE notifi SET views = ? WHERE cu_email = ?
   updateListNotifi: async (data, callback) => {
     let email = data.e;
 

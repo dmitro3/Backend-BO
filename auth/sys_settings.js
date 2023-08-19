@@ -1,3 +1,9 @@
+// lấy giá của coin và update thẳng vào file stSys.json(được đại diện bằng dataSys) 
+// tự động update giá vào file stSys.json sau 60 giây
+// có thể dùng giao diện admin để update stsSys.json
+// bất cứ client nào connect đến cũng được gửi stsSys.json lần đầu tiên và mỗi 60 giây lại nhận được stsSys.json thêm 1 lần nữa nhờ vào sự kiện update giá mỗi 60 giây
+// cần kiểm tra xem connect socket có cần token không và token có phải là token của admin không 
+
 const express = require('express')
 const app = express()
 const axios = require('axios')
@@ -88,8 +94,6 @@ function getCoinData(){
         
     }).catch((error) => {});
 
-    
-    
     // axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest', configGetCoin)
     // .then((res) => {
     //     let data = res.data.data
@@ -101,11 +105,11 @@ function getCoinData(){
     // })
 }
 
-getCoinData()
+getCoinData() // update giá coin vào file stSys.json 
 
 var timeLoop = 60, autoQuoteSet = true, checkAuto = true
-autoQuote(timeLoop, autoQuoteSet)
-
+autoQuote(timeLoop, autoQuoteSet) 
+// update giá coin mỗi 60 giây
 function autoQuote(t, a) {
     let auto
     if(!a){
@@ -121,7 +125,7 @@ function autoQuote(t, a) {
 
 
 wss.on('connection', function(ws){
-
+    // admin update stSys.json
     ws.on('message', d => {
         var data = JSON.parse(d)
 			

@@ -41,7 +41,7 @@ module.exports = {
         )
     },
 
-    walletTrans: (data, callback) => {
+    walletTrans: (data, callback) => { 
   
         let amount = data.a  // số tiền cần chuyển
         let nick = data.nick // nick cần chuyển
@@ -52,7 +52,6 @@ module.exports = {
 
         if(type_s == '' || type_r == '') return callback(error);
 
-        //
         let receive = amount
         let sqlq = `update users set money_${type_s} = money_${type_s} - ?, money_${type_r} = money_${type_r} + ? where nick_name = ?`
 

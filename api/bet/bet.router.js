@@ -15,11 +15,16 @@ app.use(function(req, res, next) {
 });
 
 
-
+// trigger tại history/data-list/list-bet-view ListHisBet
+// SELECT * FROM bet_history WHERE status = 1 ORDER BY id DESC LIMIT 1000
 app.get("/historyBet", checkToken, getAllBetHis);
 
+// trigger tại history/data-list/list-bet-view ListHisBet
+// SELECT * FROM bet_history WHERE status = 0 ORDER BY id desc
 app.get("/hisBetTrash", checkToken, getAllBetHisTrash);
 
+// trigger tại history/data-list/list-bet-view ListHisBet
+// UPDATE bet_history SET status = ? WHERE id = ?
 app.patch("/deleteBet", checkToken, deleteBetHisById);
 
 
