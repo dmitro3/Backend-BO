@@ -5614,11 +5614,11 @@ CREATE TABLE `add_money_history` (
     `nick_name` varchar(255) DEFAULT NULL,
     `email` varchar(255) DEFAULT NULL,
     `type` int DEFAULT '0',
-    `price_USDT` decimal(20, 4) DEFAULT '0.0000',
-    `price_ETH` decimal(20, 4) DEFAULT '0.0000',
-    `price_BTC` decimal(20, 4) DEFAULT '0.0000',
-    `price_VN` decimal(20, 4) DEFAULT '0.0000',
-    `price_PAYPAL` decimal(20, 4) DEFAULT '0.0000',
+    `price_USDT` decimal(20, 4) DEFAULT '0.0000', -- số tiền usdt được add vào 
+    `price_ETH` decimal(20, 4) DEFAULT '0.0000', -- số tiền eth được add vào
+    `price_BTC` decimal(20, 4) DEFAULT '0.0000', -- số tiền btc được add vào
+    `price_VN` decimal(20, 4) DEFAULT '0.0000', -- số tiền vnd được add vào
+    `price_PAYPAL` decimal(20, 4) DEFAULT '0.0000', -- số tiền paypal được add vào
     `created_at` varchar(255) DEFAULT NULL,
     `updated_at` varchar(255) DEFAULT NULL,
     `deleted_at` varchar(255) DEFAULT NULL,
@@ -5627,33 +5627,33 @@ CREATE TABLE `add_money_history` (
 CREATE TABLE `bet_history` (
     `id` int NOT NULL AUTO_INCREMENT,
     `email` varchar(255) DEFAULT NULL,
-    `id_account` varchar(255) DEFAULT NULL, // cái này tương đương với u_id của account 
-    `type_account` int DEFAULT '0',
-    `buy_sell` varchar(255) DEFAULT NULL,
-    `currency` varchar(255) DEFAULT NULL,
-    `amount_win` decimal(20, 4) DEFAULT '0.0000',
-    `amount_lose` decimal(20, 4) DEFAULT '0.0000',
-    `amount_bet` decimal(20, 4) DEFAULT '0.0000',
-    `open` decimal(20, 4) DEFAULT '0.0000',
-    `close` decimal(20, 4) DEFAULT '0.0000',
-    `session` int NOT NULL DEFAULT '0',
-    `marketing` int DEFAULT '0',
-    `status` int DEFAULT '1',
+    `id_account` varchar(255) DEFAULT NULL, -- cái này tương đương với u_id của account 
+    `type_account` int DEFAULT '0', -- 0 = demo, 1 = live
+    `buy_sell` varchar(255) DEFAULT NULL, -- 'buy' hoặc 'sell'
+    `currency` varchar(255) DEFAULT NULL, -- cặp tiền dùng để bet ví dụ BTC_USDT
+    `amount_win` decimal(20, 4) DEFAULT '0.0000', -- số tiền thắng của lần bet này
+    `amount_lose` decimal(20, 4) DEFAULT '0.0000', -- số tiền thua của lần bet này
+    `amount_bet` decimal(20, 4) DEFAULT '0.0000', -- số tiền đã bet
+    `open` decimal(20, 4) DEFAULT '0.0000', -- giá mở cửa
+    `close` decimal(20, 4) DEFAULT '0.0000', -- giá đóng cửa
+    `session` int NOT NULL DEFAULT '0', -- phiên làm việc
+    `marketing` int DEFAULT '0', -- tài khoản marketing hay tài khoản thường
+    `status` int DEFAULT '1', -- cái này là delete status 1 là có tồn tại 0 là cho vào thùng rác
     `created_at` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`) USING BTREE
 ) 
-CREATE TABLE `commission_history` (
+CREATE TABLE `commission_history` ( -- cái này phải sửa lại vì sẽ in ra rất nhiều bản ghi trên mỗi giao dịch 
     `id` int NOT NULL AUTO_INCREMENT,
     `email` varchar(255) DEFAULT NULL,
-    `from_upid` varchar(255) DEFAULT NULL,
-    `ref_id` varchar(255) DEFAULT NULL,
-    `upline_id` varchar(255) DEFAULT NULL,
-    `pending_commission` decimal(20, 4) DEFAULT '0.0000',
-    `personal_trading_volume` decimal(20, 4) DEFAULT '0.0000',
-    `vip_commission` varchar(20) DEFAULT '0',
-    `type` varchar(255) DEFAULT NULL,
-    `marketing` int DEFAULT '0',
-    `session` int DEFAULT '0',
+    `from_upid` varchar(255) DEFAULT NULL, -- cái này tương ứng với u_id của account để biết là khoản này đến từ account nào
+    `ref_id` varchar(255) DEFAULT NULL, -- ref_code của chủ bản ghi commission này
+    `upline_id` varchar(255) DEFAULT NULL, -- ref_code cấp trên của chủ bản ghi commission này
+    `pending_commission` decimal(20, 4) DEFAULT '0.0000', -- số tiền hoa hồng trong 1 bản ghi
+    `personal_trading_volume` decimal(20, 4) DEFAULT '0.0000', -- giá trị giao dịch của cái bet đấy xong từ cái bet đấy mới tính ra tiền thưởng 
+    `vip_commission` varchar(20) DEFAULT '0', -- hoa hồng mua vip
+    `type` varchar(255) DEFAULT NULL, -- klgd hoặc hhv
+    `marketing` int DEFAULT '0', -- loại tài khoản nếu == 1 thì không phải tài khoản thực 
+    `session` int DEFAULT '0', -- phiên giao dịch 
     `created_at` varchar(255) DEFAULT NULL,
     `status` int DEFAULT '1',
     PRIMARY KEY (`id`) USING BTREE
@@ -5661,36 +5661,36 @@ CREATE TABLE `commission_history` (
 CREATE TABLE `trade_history` (
     `id` int NOT NULL AUTO_INCREMENT,
     `email` varchar(255) DEFAULT NULL,
-    `from_u` varchar(255) DEFAULT NULL,
-    `to_u` varchar(255) DEFAULT NULL,
-    `type_key` varchar(255) DEFAULT NULL,
-    `type` varchar(255) DEFAULT NULL,
-    `network` varchar(255) DEFAULT NULL,
-    `paypal` decimal(20, 4) DEFAULT '0.0000',
-    `paypal_order_id` decimal(20, 4) DEFAULT '0.0000',
-    `pay_fee` decimal(20, 4) DEFAULT '0.0000',
-    `fee_withdraw` decimal(20, 4) DEFAULT '0.0000',
-    `currency` varchar(255) DEFAULT NULL,
-    `amount` decimal(20, 4) DEFAULT '0.0000',
-    `real_amount` decimal(20, 4) DEFAULT '0.0000',
-    `note` varchar(255) DEFAULT NULL,
-    `status` int DEFAULT '0',
-    `delete_status` int DEFAULT '0',
+    `from_u` varchar(255) DEFAULT NULL, -- chuyển từ người nào rất lung tung 
+    `to_u` varchar(255) DEFAULT NULL, -- chuyển đến người nào rất lung tung
+    `type_key` varchar(255) DEFAULT NULL, -- mv, nn, nt, rt, ctsa, ctas
+    `type` varchar(255) DEFAULT NULL, -- mô tả loại chuyển tiền
+    `network` varchar(255) DEFAULT NULL, -- mạng crypto 
+    `paypal` decimal(20, 4) DEFAULT '0.0000', -- payerId + '|' + paymentId + '|' + token
+    `paypal_order_id` decimal(20, 4) DEFAULT '0.0000', -- giống cái tên của nó paypal order id 
+    `pay_fee` decimal(20, 4) DEFAULT '0.0000', -- phí rút tiền được quy đụng trong file stSys.json
+    `fee_withdraw` decimal(20, 4) DEFAULT '0.0000', -- cũng là phí rút trong logic thì chỉ đề cập đến rút usdt trên mạng bsc
+    `currency` varchar(255) DEFAULT NULL, -- loại tiền thường là usdt
+    `amount` decimal(20, 4) DEFAULT '0.0000',-- số tiền của giao dịch đó
+    `real_amount` decimal(20, 4) DEFAULT '0.0000', -- vô nghĩa không được insert ở đâu hết
+    `note` varchar(255) DEFAULT NULL, -- ghi chú khá vô nghĩa
+    `status` int DEFAULT '0', -- trạng thái 0,1,2
+    `delete_status` int DEFAULT '0', -- trạng thái xoá 0 và 1
     `created_at` varchar(255) DEFAULT NULL,
-    `bank` varchar(255) DEFAULT NULL,
+    `bank` varchar(255) DEFAULT NULL, -- không dùng đến
     PRIMARY KEY (`id`) USING BTREE
 ) 
 CREATE TABLE `account` (
     `id` int NOT NULL AUTO_INCREMENT,
-    `email` varchar(255) DEFAULT NULL,
-    `u_id` varchar(255) DEFAULT NULL,
+    `email` varchar(255) DEFAULT NULL, -- email của user thôi
+    `u_id` varchar(255) DEFAULT NULL, -- tương đương với id_account bên bet_history
     `type` int DEFAULT '0', -- demo = 0 official = 1
-    `win` decimal(20, 4) DEFAULT '0.0000',
-    `lose` decimal(20, 4) DEFAULT '0.0000',
-    `balance` decimal(20, 4) DEFAULT '0.0000',
-    `deposit` int DEFAULT '0',
-    `withdrawal` int DEFAULT '0',
-    `order_amount` decimal(20, 4) DEFAULT '0.0000',
+    `win` decimal(20, 4) DEFAULT '0.0000', -- tổng số tiền thắng tăng thêm 95% mỗi lần thắng
+    `lose` decimal(20, 4) DEFAULT '0.0000', -- tổng số tiền thua 
+    `balance` decimal(20, 4) DEFAULT '0.0000', -- số dư trong account 
+    `deposit` int DEFAULT '0', -- cái này không dùng 
+    `withdrawal` int DEFAULT '0', -- cái này không dùng
+    `order_amount` decimal(20, 4) DEFAULT '0.0000', -- tổngt số tiền đặt cược 
     `created_at` varchar(255) DEFAULT NULL,
     `updated_at` varchar(255) DEFAULT NULL,
     `deleted_at` varchar(255) DEFAULT NULL,
@@ -5700,71 +5700,71 @@ CREATE TABLE `users` (
     `id` int NOT NULL AUTO_INCREMENT,
     `email` varchar(255) DEFAULT NULL,
     `password` varchar(255) DEFAULT NULL,
-    `permissions` varchar(255) DEFAULT NULL, // nên bỏ
-    `last_login` varchar(255) DEFAULT NULL, // nên bỏ
-    `ref_code` varchar(255) DEFAULT NULL, // cái này là id giới thiệu của mình thằng nào có cái upline_id này mình sẽ hưởng hoa hồng từ nó
-    `nick_name` varchar(255) DEFAULT NULL, // biệt danh
-    `upline_id` varchar(255) DEFAULT NULL, // cái này là id giới thiệu của người giới thiệu mình đến sàn thằng nào có refcode này nó sẽ hưởng hoa hồng từ mình
-    `first_name` varchar(255) DEFAULT NULL, // tên
-    `last_name` varchar(255) DEFAULT NULL, // họ
-    `username` varchar(255) DEFAULT NULL, // chỉ áp dụng cho admin
-    `address` varchar(255) DEFAULT NULL, // 
-    `secondary_address` varchar(255) DEFAULT NULL,
-    `job_position` varchar(255) DEFAULT NULL,
-    `phone` varchar(255) DEFAULT NULL,
-    `secondary_phone` varchar(255) DEFAULT NULL,
-    `secondary_email` varchar(255) DEFAULT NULL,
-    `gender` varchar(255) DEFAULT NULL,
-    `website` varchar(255) DEFAULT NULL,
-    `skype` varchar(255) DEFAULT NULL,
-    `facebook` varchar(255) DEFAULT NULL,
-    `twitter` varchar(255) DEFAULT NULL,
-    `google_plus` varchar(255) DEFAULT NULL,
-    `youtube` varchar(255) DEFAULT NULL,
-    `github` varchar(255) DEFAULT NULL,
-    `interest` varchar(255) DEFAULT NULL,
-    `about` varchar(255) DEFAULT NULL,
+    `permissions` varchar(255) DEFAULT NULL, -- nên bỏ không có trong logic server
+    `last_login` varchar(255) DEFAULT NULL, -- nên bỏ không có trong logic server
+    `ref_code` varchar(255) DEFAULT NULL, -- cái này là id giới thiệu của mình thằng nào có cái upline_id này mình sẽ hưởng hoa hồng từ nó
+    `nick_name` varchar(255) DEFAULT NULL, -- biệt danh
+    `upline_id` varchar(255) DEFAULT NULL, -- cái này là id giới thiệu của người giới thiệu mình đến sàn thằng nào có refcode này nó sẽ hưởng hoa hồng từ mình
+    `first_name` varchar(255) DEFAULT NULL, -- tên
+    `last_name` varchar(255) DEFAULT NULL, -- họ
+    `username` varchar(255) DEFAULT NULL, -- chỉ áp dụng cho admin
+    `address` varchar(255) DEFAULT NULL, -- cái này không dùng đến
+    `secondary_address` varchar(255) DEFAULT NULL, -- không dùng đến
+    `job_position` varchar(255) DEFAULT NULL, -- không dùng đến
+    `phone` varchar(255) DEFAULT NULL, -- không dùng đến
+    `secondary_phone` varchar(255) DEFAULT NULL, -- không dùng đến
+    `secondary_email` varchar(255) DEFAULT NULL, -- không dùng đến
+    `gender` varchar(255) DEFAULT NULL, -- không dùng đến
+    `website` varchar(255) DEFAULT NULL, -- không dùng đến
+    `skype` varchar(255) DEFAULT NULL, -- không dùng đến
+    `facebook` varchar(255) DEFAULT NULL, -- không dùng đến
+    `twitter` varchar(255) DEFAULT NULL, -- không dùng đến
+    `google_plus` varchar(255) DEFAULT NULL, -- không dùng đến
+    `youtube` varchar(255) DEFAULT NULL, -- không dùng đến
+    `github` varchar(255) DEFAULT NULL, -- không dùng đến
+    `interest` varchar(255) DEFAULT NULL, -- không dùng đến
+    `about` varchar(255) DEFAULT NULL, -- không dùng đến
     `profile_image` varchar(255) DEFAULT NULL,
-    `personal_quota` varchar(255) DEFAULT NULL,
-    `active` int DEFAULT '0',
+    `personal_quota` varchar(255) DEFAULT NULL, -- không dùng đến
+    `active` int DEFAULT '0', 
     `verified` int DEFAULT '0',
     `super_user` int DEFAULT '0',
     `manage_supers` int DEFAULT '0',
-    `offer_account` int DEFAULT '0',
-    `money_eth` decimal(20, 4) DEFAULT '0.0000',
-    `money_btc` decimal(20, 4) DEFAULT '0.0000',
-    `money_usdt` decimal(20, 4) DEFAULT '0.0000',
-    `money_vn` decimal(20, 4) DEFAULT '0.0000',
-    `money_paypal` decimal(20, 4) DEFAULT '0.0000',
-    `money_deposit` decimal(20, 4) DEFAULT '0.0000',
-    `money_withdrawal` decimal(20, 4) DEFAULT '0.0000',
-    `super_account` int DEFAULT '0',
-    `wallet_his` varchar(255) DEFAULT NULL,
-    `wallet_order_offer` decimal(20, 2) DEFAULT NULL,
-    `sponsor` varchar(255) DEFAULT NULL,
-    `money_wallet_his` decimal(20, 4) DEFAULT '0.0000',
-    `vip_user` int DEFAULT '0',
-    `level_vip` int DEFAULT '0',
-    `id_front` varchar(255) DEFAULT NULL,
-    `id_back` varchar(255) DEFAULT NULL,
-    `pending_commission` int DEFAULT '0',
+    `offer_account` int DEFAULT '0', -- không dùng đến
+    `money_eth` decimal(20, 4) DEFAULT '0.0000', -- số tiền eth thuộc ví của user
+    `money_btc` decimal(20, 4) DEFAULT '0.0000', -- số tiền btc thuộc ví của user
+    `money_usdt` decimal(20, 4) DEFAULT '0.0000', -- số tiền usdt thuộc ví của user
+    `money_vn` decimal(20, 4) DEFAULT '0.0000', -- số tiền vnd thuộc ví của user
+    `money_paypal` decimal(20, 4) DEFAULT '0.0000', -- số tiền paypal thuộc ví của user
+    `money_deposit` decimal(20, 4) DEFAULT '0.0000', -- ko dùng đến
+    `money_withdrawal` decimal(20, 4) DEFAULT '0.0000', -- ko dùng đến
+    `super_account` int DEFAULT '0', -- ko dùng đến
+    `wallet_his` varchar(255) DEFAULT NULL, -- không dùng đến
+    `wallet_order_offer` decimal(20, 2) DEFAULT NULL, -- không dùng đến
+    `sponsor` varchar(255) DEFAULT NULL, -- không dùng đến
+    `money_wallet_his` decimal(20, 4) DEFAULT '0.0000', -- không dùng đến
+    `vip_user` int DEFAULT '0', -- trạng thái vip
+    `level_vip` int DEFAULT '0', -- level vip
+    `id_front` varchar(255) DEFAULT NULL, -- giấy tờ mặt trước
+    `id_back` varchar(255) DEFAULT NULL, -- giấy tờ mặt sau
+    `pending_commission` int DEFAULT '0', -- tổng hoa hồng từ các giao dịch của cấp dưới
     `commission_vip` int DEFAULT '0',
     `commission_update` varchar(255) DEFAULT NULL,
-    `address_BTC` varchar(255) DEFAULT NULL,
-    `address_ETH` varchar(255) DEFAULT NULL,
-    `address_USDT` varchar(255) DEFAULT NULL,
-    `privateKey_BTC` varchar(255) DEFAULT NULL,
-    `privateKey_ETH` varchar(255) DEFAULT NULL,
-    `privateKey_USDT` varchar(255) DEFAULT NULL,
-    `wif_BTC` varchar(255) DEFAULT NULL,
-    `completed_profile` int DEFAULT '0',
-    `active_2fa` int DEFAULT '0',
-    `secret_2fa` varchar(255) DEFAULT NULL,
-    `code_secure` varchar(255) DEFAULT NULL, -- cai nay chi dung 1 lan
-    `pricePlay` decimal(20, 4) DEFAULT '0.0000',
-    `priceWin` decimal(20, 4) DEFAULT '0.0000',
-    `priceLose` decimal(20, 4) DEFAULT '0.0000',
-    `marketing` int DEFAULT '0',
+    `address_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `address_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `address_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `privateKey_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `privateKey_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `privateKey_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `wif_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `completed_profile` int DEFAULT '0', -- không dùng đến
+    `active_2fa` int DEFAULT '0', -- trạng thái bảo mật 2fa đã được kích hoạt hay chưa
+    `secret_2fa` varchar(255) DEFAULT NULL, -- mã qr 2fa 
+    `code_secure` varchar(255) DEFAULT NULL, -- được gửi đến email của user và update liên tục
+    `pricePlay` decimal(20, 4) DEFAULT '0.0000', -- tổng số tiền cược của user
+    `priceWin` decimal(20, 4) DEFAULT '0.0000', -- tổng số tiền thắng cược của user
+    `priceLose` decimal(20, 4) DEFAULT '0.0000', -- tổng số tiền thua của user
+    `marketing` int DEFAULT '0', -- tài khoản thuộc diện marketing
     `so_cmnd` varchar(255) DEFAULT NULL,
     `language` varchar(255) DEFAULT NULL,
     `country` varchar(255) DEFAULT NULL,
@@ -5791,6 +5791,7 @@ CREATE TABLE `telegram` (
     `phone` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`) USING BTREE
 )
+
 CREATE TABLE `exchange_history` (
     `id` int NOT NULL AUTO_INCREMENT,
     `email` varchar(255) DEFAULT NULL,
@@ -5805,67 +5806,3 @@ CREATE TABLE `exchange_history` (
     PRIMARY KEY (`id`) USING BTREE
 ) /* bo roi */
 
-/* Đối tượng User này có gì:
-id, email, password, one_time_password, phone_number, first_name, last_name, user_name 
- */
-/* new database */
-CREATE TABLE `users` (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `email` varchar(255) DEFAULT NULL,
-    `password` varchar(255) DEFAULT NULL,
-    `last_login` varchar(255) DEFAULT NULL,
-    `ref_code` varchar(255) DEFAULT NULL, // cái này là id giới thiệu của mình thằng nào có cái upline_id này mình sẽ hưởng hoa hồng từ nó
-    `nick_name` varchar(255) DEFAULT NULL,
-    `upline_id` varchar(255) DEFAULT NULL, // cái này là id giới thiệu của người giới thiệu mình đến sàn thằng nào có refcode này nó sẽ hưởng hoa hồng từ mình
-    `first_name` varchar(255) DEFAULT NULL,
-    `last_name` varchar(255) DEFAULT NULL,
-    `username` varchar(255) DEFAULT NULL,
-    `address` varchar(255) DEFAULT NULL,
-    `phone` varchar(255) DEFAULT NULL,
-    `gender` varchar(255) DEFAULT NULL,
-    `facebook` varchar(255) DEFAULT NULL,
-    `twitter` varchar(255) DEFAULT NULL,
-    `profile_image` varchar(255) DEFAULT NULL,
-    `active` int DEFAULT '0',
-    `verified` int DEFAULT '0',
-    `manage_supers` int DEFAULT '0',
-    `money_eth` decimal(20, 4) DEFAULT '0.0000',
-    `money_btc` decimal(20, 4) DEFAULT '0.0000',
-    `money_usdt` decimal(20, 4) DEFAULT '0.0000',
-    `money_vn` decimal(20, 4) DEFAULT '0.0000',
-    `money_paypal` decimal(20, 4) DEFAULT '0.0000',
-    `money_deposit` decimal(20, 4) DEFAULT '0.0000',
-    `money_withdrawal` decimal(20, 4) DEFAULT '0.0000',
-    `wallet_his` varchar(255) DEFAULT NULL,
-    `wallet_order_offer` decimal(20, 2) DEFAULT NULL,
-    `money_wallet_his` decimal(20, 4) DEFAULT '0.0000',
-    `vip_user` int DEFAULT '0',
-    `level_vip` int DEFAULT '0',
-    `id_front` varchar(255) DEFAULT NULL,
-    `id_back` varchar(255) DEFAULT NULL,
-    `pending_commission` int DEFAULT '0',
-    `commission_vip` int DEFAULT '0',
-    `commission_update` varchar(255) DEFAULT NULL,
-    `address_BTC` varchar(255) DEFAULT NULL,
-    `address_ETH` varchar(255) DEFAULT NULL,
-    `address_USDT` varchar(255) DEFAULT NULL,
-    `privateKey_BTC` varchar(255) DEFAULT NULL,
-    `privateKey_ETH` varchar(255) DEFAULT NULL,
-    `privateKey_USDT` varchar(255) DEFAULT NULL,
-    `wif_BTC` varchar(255) DEFAULT NULL,
-    `completed_profile` int DEFAULT '0',
-    `active_2fa` int DEFAULT '0',
-    `secret_2fa` varchar(255) DEFAULT NULL,
-    `code_secure` varchar(255) DEFAULT NULL, -- cai nay chi dung 1 lan
-    `pricePlay` decimal(20, 4) DEFAULT '0.0000',
-    `priceWin` decimal(20, 4) DEFAULT '0.0000',
-    `priceLose` decimal(20, 4) DEFAULT '0.0000',
-    `marketing` int DEFAULT '0',
-    `so_cmnd` varchar(255) DEFAULT NULL,
-    `language` varchar(255) DEFAULT NULL,
-    `country` varchar(255) DEFAULT NULL,
-    `created_at` varchar(255) DEFAULT NULL,
-    `updated_at` varchar(255) DEFAULT NULL,
-    `deleted_at` varchar(255) DEFAULT NULL,
-    PRIMARY KEY (`id`) USING BTREE
-) 

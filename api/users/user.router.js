@@ -116,7 +116,7 @@ app.get("/checkEmail/:email", checkToken, checkUserEmail);
 app.patch("/updatePassword", checkToken, updateUserPasswordByEmail);
 
 // trigger tại AccountAllMemberlist.vue Tạo tài khoản => DataViewSidebar.Vue phía admin và HoSoUser.vue => HoSoSetting.vue (user ko có chỗ trigger)
-// update số dư của btc, eth, usdt, vnd của user và thêm bản ghi
+// update số dư của btc, eth, usdt, vnd của user và thêm bản ghi add_money_history
 app.patch("/updateMoney", checkToken, updateUserMoneyById);
 
 // trigger tại AccountAgencyList.vue AccountAllMemberList.vue đều là phía admin
@@ -154,7 +154,7 @@ app.get("/viewTotalMAgency/:id", checkToken, viewMemberAgency);
 app.get("/info", checkToken, getInfoUser);
 
 // trigger tại DashboardAnalytics.vue phía admin
-// lấy dữ 15 dữ liệu tổng hợp tại 4 bảng users, trade_history, bet_history, commission_history 
+// lấy 15 dữ liệu tổng hợp tại 4 bảng users, trade_history, bet_history, commission_history 
 app.get("/analytics", checkToken, getListAnalytics);
 
 // trigger tại HoSoUser.vue => HoSoSetting.vue
@@ -230,7 +230,7 @@ app.post("/accept-deposit", checkToken, DepositRequest);
 app.post("/buy-vip", checkToken, UserBuyVIP);
 
 // trigger tại history/data-list/list-deposit-view TradeHistory.vue 
-// lấy các thông số thắng thua từ bet_history và account để 
+// lấy các thông số thắng thua từ bet_history và account để xem
 app.get("/bo-statistics", checkToken, getBoStatistics);
 
 // trigger tại user/trade/history TradeHistory.vue

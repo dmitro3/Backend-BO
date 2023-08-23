@@ -21,15 +21,4 @@ module.exports = {
             ]
         )
     },
-    // updatePricePlay: (email, mPlay) => {
-    //     db.query(
-    //         `UPDATE users SET pricePlay = pricePlay + ? WHERE email = ?`,
-    //         [
-    //             mPlay,
-    //             email
-    //         ], (error, results, fields) => {
-                
-    //         }
-    //     )
-    // },
 }

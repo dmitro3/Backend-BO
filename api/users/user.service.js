@@ -24,6 +24,7 @@ const web3 = new Web3(
   )
 );
 
+
 function makeid(length) {
   var result = [];
   var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -63,14 +64,15 @@ function creatAccountUser(data) {
     [data.email, makeid(10)]
   );
 }
-// cộng tiền hoa hồng cho tối đa 7 tầng và in vào commission_history 
+// cộng tiền hoa hồng cho tối đa 7 tầng và in vào commission_history
 async function CongTienHoaHongVIP(email) {
   // kiểm tra F1 của mình là ai để cộng tiền là 50% của 100$
 
   let lsComm = Helper.getConfig(fileCommissionVip);
 
   let hhVip = lsComm; // usdt 7 tầng
-  let refFrom /* ref id của người mua vip */, uplineID; /* ref id của người giới thiệu người đang mua vip */
+  let refFrom /* ref id của người mua vip */,
+    uplineID; /* ref id của người giới thiệu người đang mua vip */
   // lấy refFrom và uplineID
   await new Promise((res, rej) => {
     db.query(
@@ -91,7 +93,8 @@ async function CongTienHoaHongVIP(email) {
   for (let u = 0; u < hhVip.length; u++) {
     let amountDuocCong = hhVip[u].value * 1;
     if (uplineID == null) break; // kết thúc
-    db.query( // cộng commission_vip và money_usdt của người giới thiệu cấp trên tính từ người đang mua vip 
+    db.query(
+      // cộng commission_vip và money_usdt của người giới thiệu cấp trên tính từ người đang mua vip
       `UPDATE users SET commission_vip = commission_vip + ?, money_usdt = money_usdt + ? where ref_code = ?`,
       [amountDuocCong, amountDuocCong, uplineID],
       (error, results, fields) => {
@@ -101,7 +104,8 @@ async function CongTienHoaHongVIP(email) {
         // in vào lịch sử hoa hồng VIP
         // kiểm tra UPLINE ID của cấp trên
 
-        db.query( // in vào commision_history
+        db.query(
+          // in vào commision_history
           `INSERT INTO commission_history (email, ref_id, upline_id, vip_commission, type, created_at) 
                     VALUES (?,?,?,?,?,now())`,
           [
@@ -115,7 +119,8 @@ async function CongTienHoaHongVIP(email) {
             if (error) {
               return callback(error);
             }
-            db.query( // tiếp tục với các tầng còn lại đến khi không còn tầng nào nữa hoặc đến khi hết cả 7 tầng
+            db.query(
+              // tiếp tục với các tầng còn lại đến khi không còn tầng nào nữa hoặc đến khi hết cả 7 tầng
               `SELECT upline_id FROM users WHERE ref_code = ?`,
               [
                 uplineID, // ref id của thằng F1
@@ -256,7 +261,7 @@ module.exports = {
     });
   },
 
-  // select email from users where email = email // kiểm tra email đã tồn tại chưa 
+  // select email from users where email = email // kiểm tra email đã tồn tại chưa
   checkUserEmail: (email, callback) => {
     db.query(
       `select email from users where email = ?`,
@@ -269,7 +274,7 @@ module.exports = {
       }
     );
   },
-  
+
   // select email from users where email = data.email and code_secure = data.code_secure phế vứt đi
   checkCodeSecure: (data, callback) => {
     db.query(
@@ -283,7 +288,7 @@ module.exports = {
       }
     );
   },
-  
+
   // check if user who use this email have active == 1 or not
   checkActiveUser: (email, callback) => {
     db.query(
@@ -378,7 +383,7 @@ module.exports = {
       }
     );
   },
-
+  // không trigger
   getUserById: (id, callback) => {
     db.query(
       `select * from users where id = ?`,
@@ -632,7 +637,7 @@ module.exports = {
       }
     );
   },
-  
+
   // select COUNT(upline_id) as totalPeopel from users where upline_id = ?
   viewMemberAgency: (id, callback) => {
     db.query(
@@ -672,7 +677,7 @@ module.exports = {
       }
     );
   },
-  // lấy u_id từ 2 account của user sau đó lấy tất cả lịch sử bet_history dựa trên u_id(tương ứng với id_account trong bet_history) 
+  // lấy u_id từ 2 account của user sau đó lấy tất cả lịch sử bet_history dựa trên u_id(tương ứng với id_account trong bet_history)
   // query account lấy 2 u_id rồi query bet_history dựa trên 2 u_id(id_account) này
   listHisBO: (email, callback) => {
     db.query(
@@ -709,7 +714,8 @@ module.exports = {
   },
   // lấy money_usdt từ user kiểm tra nếu đủ thì trừ money_usdt trong user đi và tăng balance trong account của user rồi in vào lịch sử
   UsdtToLive: (data, callback) => {
-    db.query( // lấy số dư money_usdt từ user
+    db.query(
+      // lấy số dư money_usdt từ user
       `select money_usdt from users where email = ?`,
       [data.email],
       (error, results, fields) => {
@@ -717,13 +723,16 @@ module.exports = {
           return callback(error);
         }
 
-        if (results[0].money_usdt >= data.m) { // kiểm tra xem số dư money_usdt có đủ không 
+        if (results[0].money_usdt >= data.m) {
+          // kiểm tra xem số dư money_usdt có đủ không
           //=======
-          db.query( // trừ số dư money_usdt trong user đi
+          db.query(
+            // trừ số dư money_usdt trong user đi
             `update users set money_usdt = money_usdt - ? where email = ?`,
             [data.m, data.email]
           );
-          db.query( // cộng số dư trong account 
+          db.query(
+            // cộng số dư trong account
             `update account set balance = balance + ? where email = ? AND type = 1`,
             [data.m, data.email],
             (error, results, fields) => {
@@ -784,7 +793,8 @@ module.exports = {
   },
   // lấy số dư của tk live => kiểm tra nếu số dư đủ trừ số dư trong account + money_usdt trong users in vào trade_history
   LiveToUsdt: (data, callback) => {
-    db.query( // lấy số dư 
+    db.query(
+      // lấy số dư
       `select balance from account where email = ? AND type = 1`,
       [data.email],
       (error, results, fields) => {
@@ -792,12 +802,15 @@ module.exports = {
           return callback(error);
         }
 
-        if (results[0].balance >= data.m) { // kiểm tra số dư có đủ không
-          db.query( // trừ số dư trong tài khoản live
+        if (results[0].balance >= data.m) {
+          // kiểm tra số dư có đủ không
+          db.query(
+            // trừ số dư trong tài khoản live
             `update account set balance = balance - ? where email = ? AND type = 1`,
             [data.m, data.email]
           );
-          db.query( // tăng số tiền usdt lên trong users
+          db.query(
+            // tăng số tiền usdt lên trong users
             `update users set money_usdt = money_usdt + ? where email = ?`,
             [data.m, data.email],
             (error, results, fields) => {
@@ -837,7 +850,8 @@ module.exports = {
   // trừ money_usdt user gửi và cộng money_usdt user nhận in vào trade_history là rt nội bộ
   WithDrawalNoiBo: (data, callback) => {
     dataSys = Helper.getConfig(fileSys);
-    db.query( // lấy số dư money_usdt của user
+    db.query(
+      // lấy số dư money_usdt của user
       `select money_usdt, verified from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -853,8 +867,10 @@ module.exports = {
         let phi = dataSys.feeRutUSDTNoiBo;
         let tongPhi = Number(data.amS) + Number(phi);
 
-        if (results[0].money_usdt >= tongPhi) { // nếu đủ tiền 
-          db.query( // trừ tiền người gửi 
+        if (results[0].money_usdt >= tongPhi) {
+          // nếu đủ tiền
+          db.query(
+            // trừ tiền người gửi
             `update users set money_usdt = money_usdt - ? where email = ?`,
             [tongPhi, data.email]
           );
@@ -883,7 +899,8 @@ module.exports = {
             // );
           });
 
-          db.query( // cộng tiền vào tài khoản người nhận 
+          db.query(
+            // cộng tiền vào tài khoản người nhận
             `update users set money_usdt = money_usdt + ? where nick_name = ?`,
             [Number(data.amS), data.address],
             (error, results, fields) => {
@@ -928,7 +945,8 @@ module.exports = {
   WithDrawalERC: (data, callback) => {
     dataSys = Helper.getConfig(fileSys);
 
-    db.query( // lấy số dư money_usdt của users gửi 
+    db.query(
+      // lấy số dư money_usdt của users gửi
       `select money_usdt from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -938,8 +956,10 @@ module.exports = {
         // phí rút usdt
         let phi = dataSys.feeRutETHERC20;
         let tongPhi = Number(data.amS) + Number(phi);
-        if (results[0].money_usdt >= tongPhi) { // nếu đủ tiền thì tiến hành rút
-          db.query( // trừ tiền tài khoản users gửi
+        if (results[0].money_usdt >= tongPhi) {
+          // nếu đủ tiền thì tiến hành rút
+          db.query(
+            // trừ tiền tài khoản users gửi
             `update users set money_usdt = money_usdt - ? where email = ?`,
             [tongPhi, data.email],
             (error, results, fields) => {
@@ -953,7 +973,7 @@ module.exports = {
               Tele.sendMessRut(`ARES-CHECK check ${data.nick_name}`);
 
               //==== IN vào lịch sử
-              db.query( 
+              db.query(
                 `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, network, created_at)
                          values(?,?,?,?,?,?,?,?,?,?,now())`,
                 [
@@ -982,11 +1002,13 @@ module.exports = {
       }
     );
   },
-  // nếu money_usdt của user đủ và đã verified thì tiến hành trừ money_usdt của user và lưu vào trade_history chờ duyệt ở đâu đó 
-  WithDrawalBSC: (data, callback) => { // cái hàm này ko có chỗ nào thực hiện chuyển tiền về ví khách cả
+  // nếu money_usdt của user đủ và đã verified thì tiến hành trừ money_usdt của user và lưu vào trade_history chờ duyệt ở đâu đó
+  WithDrawalBSC: (data, callback) => {
+    // cái hàm này ko có chỗ nào thực hiện chuyển tiền về ví khách cả
     dataSys = Helper.getConfig(fileSys);
 
-    db.query( // lấy money_usdt và tình trạng verified của user 
+    db.query(
+      // lấy money_usdt và tình trạng verified của user
       `select money_usdt, verified from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -1002,7 +1024,8 @@ module.exports = {
         let phi = Number(dataSys.feeRutUSDTBEP20);
 
         let tongPhi = Number(data.amS) + phi;
-        if (results[0].money_usdt >= tongPhi) { // nếu đủ tiền và đã verified thì tiến hành
+        if (results[0].money_usdt >= tongPhi) {
+          // nếu đủ tiền và đã verified thì tiến hành
           //======= Trừ tiền tài khoản mình
           db.query(
             `UPDATE users SET money_usdt = money_usdt - ? WHERE email = ?`, // trừ money_usdt của users gửi
@@ -1103,9 +1126,10 @@ module.exports = {
       }
     );
   },
-  // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận 
+  // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận
   WithDrawalPaypalNB: (data, callback) => {
-    db.query( // lấy số dư money_paypal của user 
+    db.query(
+      // lấy số dư money_paypal của user
       `select money_paypal from users where email = ? AND nick_name = ?`,
       [data.email, data.nick_name],
       (error, results, fields) => {
@@ -1117,18 +1141,21 @@ module.exports = {
         let tongPhi = Number(data.amS) + Number(phi);
 
         if (results[0].money_paypal >= tongPhi) {
-          db.query( // trừ money_paypal của người gửi 
+          db.query(
+            // trừ money_paypal của người gửi
             `update users set money_paypal = money_paypal - ? where email = ?`,
             [tongPhi, data.email]
           );
-          db.query( // cộng money_paypal của người nhận 
+          db.query(
+            // cộng money_paypal của người nhận
             `update users set money_paypal = money_paypal + ? where nick_name = ?`,
             [Number(data.amS), data.nick],
             (error, results, fields) => {
               if (error) {
                 return callback(error);
               }
-              db.query( // thêm bản ghi trade_history 
+              db.query(
+                // thêm bản ghi trade_history
                 `insert into trade_history (from_u, to_u, type_key, type, currency, amount, note, status, created_at) 
                             values (?,?,?,?,?,?,?,?,now())`,
                 [
@@ -1194,7 +1221,8 @@ module.exports = {
 
     // nạp nhanh
     if (!!money && money >= 11) {
-      db.query( // trừ money_usdt của user đi
+      db.query(
+        // trừ money_usdt của user đi
         `update users set money_${currUse} = money_${currUse} - ? where email = ?`,
         [data.m, data.email],
         (error, results, fields) => {
@@ -1203,13 +1231,15 @@ module.exports = {
           }
 
           //update vào tài khoản thật
-          db.query( // cộng balance của account lên
+          db.query(
+            // cộng balance của account lên
             `update account set balance = balance + ? where email = ? and type = 1`,
             [money, data.email]
           );
 
           //==== IN vào lịch sử
-          db.query( // in vào lịch sử với hình thức là nạp nhanh
+          db.query(
+            // in vào lịch sử với hình thức là nạp nhanh
             `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
                       values(?,?,?,?,?,?,?,?,?,now())`,
             [
@@ -1232,7 +1262,7 @@ module.exports = {
       return callback(null, []);
     }
   },
-  // trừ tiền mua vip và tăng vip cho user in vào trade_history(nd: mua vip) cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user 
+  // trừ tiền mua vip và tăng vip cho user in vào trade_history(nd: mua vip) cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user
   UserBuyVIP: (data, callback) => {
     const redataSys = Helper.getConfig(fileSys);
 
@@ -1246,7 +1276,8 @@ module.exports = {
       money = data.amount / currUse.quotePriceBTC;
     }
 
-    db.query( // trừ tiền mua vip và up lên vip level_vip = 1 
+    db.query(
+      // trừ tiền mua vip và up lên vip level_vip = 1
       `update users set money_${currUse} = money_${currUse} - ?, vip_user = 1, level_vip = 1 where email = ?`,
       [money, data.email],
       (error, results, fields) => {
@@ -1254,7 +1285,8 @@ module.exports = {
           return callback(error);
         }
         //==== IN vào lịch sử
-        db.query( // in vào trade_history với nội dung mua vip
+        db.query(
+          // in vào trade_history với nội dung mua vip
           `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
                 values(?,?,?,?,?,?,?,?,?,now())`,
           [
@@ -1282,7 +1314,7 @@ module.exports = {
       }
     );
   },
-  // lấy rất nhiều thông tin về phân cấp 
+  // lấy rất nhiều thông tin về phân cấp
   getNguoiGioiThieu: async (email, callback) => {
     let obj = {
         nick: "", // tên người giới thệu (cấp trên của user)
@@ -1291,7 +1323,7 @@ module.exports = {
         hhdl: 0, // Hoa hồng đại lý vip_user
         hhgd: 0, // hoa hồng giao dịch
         hhttisMe: 0, // hoa hồng tuần của f1 đại lý
-        tsdlisMe: 0, // tổng số đại lý cấp 1 
+        tsdlisMe: 0, // tổng số đại lý cấp 1
         tslgdCD1: 0, // tổng số lượng giao dịch tháng này
         tslgdCD2: 0, // tổng số lượng giao dịch tháng 2
         tslgdCD3: 0, // tổng số lượng giao dịch tháng 3
@@ -1497,7 +1529,7 @@ module.exports = {
       }
     }
     // {cap1: [{ref_code, vip_user}...], cap2...}
-    let TSNGD = 0, // tổng số nhà giao dịch 
+    let TSNGD = 0, // tổng số nhà giao dịch
       TSDL = 0; // tổng số dại lý
     for (let l in listData) {
       let d = listData[l];
@@ -1532,7 +1564,7 @@ module.exports = {
         }
       );
     });
-    // tính hoa hồng tuần tổng để tăng mức độ vip có vẻ như sai logic 
+    // tính hoa hồng tuần tổng để tăng mức độ vip có vẻ như sai logic
     await new Promise((resolve, reject) => {
       // tổng số hoa hồng đại lý của bản thân tuần này
       let min = 0;
@@ -1891,8 +1923,8 @@ module.exports = {
 
     return callback(null, obj);
   },
-  // từ account và bet_history lấy các dữ liệu sau: 
-  // from account lấy profits, revenue, trades, win_rate this 
+  // từ account và bet_history lấy các dữ liệu sau:
+  // from account lấy profits, revenue, trades, win_rate this
   // from bet_history lấy COUNT(amount_win), COUNT(amount_lose), COUNT(buy_sell) AS totalBUY, COUNT(buy_sell) AS totalSell
   getBoStatistics: async (email, callback) => {
     // lấy tài khoản thực của email
@@ -2230,7 +2262,7 @@ module.exports = {
       }
     );
   },
-  // SELECT * FROM trade_history WHERE from_u = ? AND type_key = ? OR type_key = ? ORDER BY id DESC LIMIT ? OFFSET ? 
+  // SELECT * FROM trade_history WHERE from_u = ? AND type_key = ? OR type_key = ? ORDER BY id DESC LIMIT ? OFFSET ?
   getListHisTradeWalletWGDPage: (data, callback) => {
     // lấy tài khoản thực của email
     let count_per_page = 10;
@@ -2301,7 +2333,7 @@ module.exports = {
       }
     );
   },
-  // lấy SUM(pending_commission), COUNT(pending_commission), COUNT(upline_id) theo kiểu phân trang 
+  // lấy SUM(pending_commission), COUNT(pending_commission), COUNT(upline_id) theo kiểu phân trang
   getComDetailsPage: (data, callback) => {
     // lấy tài khoản thực của email
     let count_per_page = 10;
@@ -2824,7 +2856,7 @@ module.exports = {
       tsNNT7N: 0, // tổng số người nạp tiền 7 ngày qua
       tsFee: 0, // thuế phí
       tsTNFEE: 0, // tổng số thu nhập ( trừ ra thuế phí)
-      
+
       // users
       tsTNPAYPAL: 0, // tổng số thu nhập người dùng
       tsTNUSD: 0, // tổng số tiền nạp USD, trade_history
