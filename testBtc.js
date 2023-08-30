@@ -12,23 +12,12 @@ const createWallet = (network = testnet) => {
   };
 };
 
-const createHDWallet = (network = testnet) => {
-  let passPhrase = new Mnemonic(Mnemonic.Words.SPANISH);
-  let xpriv = passPhrase.toHDPrivateKey(passPhrase.toString(), network);
-
-  return {
-    xpub: xpriv.xpubkey,
-    privateKey: xpriv.privateKey.toString(),
-    address: xpriv.publicKey.toAddress().toString(),
-    mnemonic: passPhrase.toString(),    
-  };
-};
-
 const axios = require("axios");
 const bitcore = require("bitcore-lib");
 const TESTNET = true;
 
-const sendBitcoin = async (sendWallet, recieverWallet, amountToSend) => { // chuyển tiền và tiền thừa trong utxo về ví người nhận
+const sendBitcoin = async (sendWallet, recieverWallet, amountToSend) => {
+  // chuyển tiền và tiền thừa trong utxo về ví người nhận
   try {
     const satoshiToSend = Math.round(amountToSend * 100000000);
     let fee = 0;
@@ -118,6 +107,8 @@ const getBTCutxos = async (theWallet) => {
   console.log(resp.data);
 };
 
+
+
 const wallet = {
   privateKey:
     "aa5b18308f8576d4520559649d95c1cd7ab4d22e48415cb0d891ad78cf296dd2",
@@ -132,17 +123,9 @@ const hdWallet = {
     "embudo letal válido aporte sopa bucle flúor núcleo regla legión viejo equipo",
 };
 
-
-// sendBitcoin(hdWallet, wallet, 0.002);
-
-//   {
-//     xpub: 'tpubD6NzVbkrYhZ4XeunZEo12ffFs67LXszDEqG1Rjn7ehJQznzgd99pbszmyHXtRApDHSHo2DeGfswBUxwiRvCrKaUX3KVAhxeXLzKx6CxinKX',
-//     privateKey: 'a6cd0dad540944788794e325798dfa9f39baf1085682510e08611fb47037d62f',
-//     address: 'mgiQkxMZ2y9yYSTQRQEjs1UCpkYUMsyNi2',
-//     mnemonic: 'embudo letal válido aporte sopa bucle flúor núcleo regla legión viejo equipo'
-//   }
-//   Mac-Pro:backend apple$ node testBtc.js
-//   {
-//     privateKey: 'aa5b18308f8576d4520559649d95c1cd7ab4d22e48415cb0d891ad78cf296dd2',
-//     address: 'myNeUWabCGwNHsLFfof3CJyCigmRpWYAiN'
-//   }
+const Cryptor = require('./crypto')
+const cryptoObject = new Cryptor(false)
+const encryptedWallet = cryptoObject.encrypt(wallet)
+console.log('Here is encrypted Wallet: ', encryptedWallet)
+const decryptedWallet = cryptoObject.decrypt(encryptedWallet)
+console.log('Here is decrypted Wallet: ', decryptedWallet)

@@ -7,8 +7,6 @@ TelegramAll.set
 global['ARESTele'] = TelegramAll;
 
 // ưu tiên hàng đầu
-require('./src/app'); // toàn bộ các api // có liên quan đến DB
-require('./games/trade'); // game chính cho trade bo btc btc // có liên quan đến DB 
 
 // chú ý ít hơn
 require('./auth/mess'); // chưa chắc chắn lắm nhưng hình như là lắng nghe message xong gửi tin nhắn qua telegram  // có liên quan đến DB

@@ -255,12 +255,12 @@ module.exports = {
   updateAmountRateCommission: (data, callback) => {
     //if(data.upID == '' || data.upID == null) return;
     let m = data.penCom * 1;
-    db.query(
-      `UPDATE users SET money_usdt = money_usdt + ?, pending_commission = pending_commission + ?, commission_update = now() WHERE ref_code = ?`,
-      [m, m, data.refID],
-      (error, results, fields) => {
-      }
-    );
+    // db.query(
+    //   `UPDATE users SET money_usdt = money_usdt + ?, pending_commission = pending_commission + ?, commission_update = now() WHERE ref_code = ?`,
+    //   [m, m, data.refID],
+    //   (error, results, fields) => {
+    //   }
+    // );
 
     db.query(
       `INSERT INTO commission_history (email, from_upid, ref_id, upline_id, pending_commission, personal_trading_volume, type, marketing, session, created_at) 

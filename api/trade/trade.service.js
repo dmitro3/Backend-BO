@@ -133,46 +133,46 @@ module.exports = {
     );
   },
   // update trade_history set status= ? where id = ?
-  doneWithdrawal: (data, callback) => {
-    db.query(
-      `update trade_history set status= ? where id = ?`,
-      [data.val, data.id],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        return callback(null, results);
-      }
-    );
-  },
+  // doneWithdrawal: (data, callback) => {
+  //   db.query(
+  //     `update trade_history set status= ? where id = ?`,
+  //     [data.val, data.id],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       return callback(null, results);
+  //     }
+  //   );
+  // },
   // UPDATE trade_history SET status = 2 WHERE id = ?
   // UPDATE users SET money_usdt = money_usdt + ? WHERE email = ?
   // update status thành 2 từ chối xong cộng lại tiền + phí cái này nó có một thằng đã gửi yêu cầu rút tiền rồi việc ở đây là từ chối cái yêu cầu đấy
-  doneRefuseWithdrawal: (data, callback) => {
-    db.query(
-      `UPDATE trade_history SET status = ? WHERE id = ?`,
-      [2, data.id],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        return callback(null, results);
-      }
-    );
+  // doneRefuseWithdrawal: (data, callback) => {
+  //   db.query(
+  //     `UPDATE trade_history SET status = ? WHERE id = ?`,
+  //     [2, data.id],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       return callback(null, results);
+  //     }
+  //   );
 
-    let amount = Number(data.amount) + Number(data.fee);
+  //   let amount = Number(data.amount) + Number(data.fee);
 
-    db.query(
-      `UPDATE users SET money_usdt = money_usdt + ? WHERE email = ?`,
-      [amount, data.email],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        return callback(null, results);
-      }
-    );
-  },
+  //   db.query(
+  //     `UPDATE users SET money_usdt = money_usdt + ? WHERE email = ?`,
+  //     [amount, data.email],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       return callback(null, results);
+  //     }
+  //   );
+  // },
   // SELECT SUM(amount) AS dtUSD, SUM(real_amount) AS dtBNB, SUM(pay_fee) AS freeBNB FROM trade_history WHERE type_key = nt AND status = 1 AND network = bep20
   getRevenueNap: (callback) => {
     db.query(

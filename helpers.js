@@ -50,9 +50,20 @@ let ssl = {
   requestCert: true,
   agent: false,
 };
+
+let setABI = function (config, data) {
+  fs.writeFileSync(
+    path.resolve(__dirname, "./config/mainnetABI/implContractABI/" + config + ".json"),
+    JSON.stringify(data),
+    function (err) {}
+  );
+  data = null;
+};
+
 module.exports = {
   getConfig: getConfig,
   setConfig: setConfig,
   ssl: ssl,
   phoneCrack: phoneCrack,
+  setABI: setABI
 };

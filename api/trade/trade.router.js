@@ -52,7 +52,7 @@ app.get("/hisWithDrawalAll", checkToken, getAllWithDrawalHis);
 
 // trigger tại history/data-list/list-withdrawal-view ListHisRutTien
 // update status của trade_history
-app.post("/doneWithdrawal", checkToken, doneWithdrawal);
+// app.post("/doneWithdrawal", checkToken, doneWithdrawal);
 
 // trigger tại history/data-list/list-deposit-view ListHisNapTien
 // update status của trade history và account + thêm số tiền vàp balance
@@ -60,11 +60,11 @@ app.post("/accept-deposit", checkToken, acceptDeposit);
 
 // trigger tại history/data-list/list-withdrawal-view ListHisRutTien
 // update trạng thái trade_history thành từ chối rồi cộng lại số dư vào money_usdt trong db 
-app.post("/doneRefuseWithdrawal", checkToken, doneRefuseWithdrawal);
+// app.post("/doneRefuseWithdrawal", checkToken, doneRefuseWithdrawal);
 
 // không có phía client
 // cái này ý là update xong chuyển tiền thủ công cho user
-app.post("/doneWithdrawalTele", doneWithdrawal);
+// app.post("/doneWithdrawalTele", doneWithdrawal);
 
 // trigger tại history/data-list/list-trade-view ListHisTrade, history/data-list/list-deposit-view ListHisNapTien
 // lấy SUM(amount) AS dtUSD, SUM(real_amount) AS dtBNB, SUM(pay_fee) AS freeBNB những cái đã hoàn thành và thuộc mạng bep20 và loại nạp tiền

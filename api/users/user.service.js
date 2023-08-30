@@ -65,81 +65,81 @@ function creatAccountUser(data) {
   );
 }
 // cộng tiền hoa hồng cho tối đa 7 tầng và in vào commission_history
-async function CongTienHoaHongVIP(email) {
-  // kiểm tra F1 của mình là ai để cộng tiền là 50% của 100$
+// async function CongTienHoaHongVIP(email) {
+//   // kiểm tra F1 của mình là ai để cộng tiền là 50% của 100$
 
-  let lsComm = Helper.getConfig(fileCommissionVip);
+//   let lsComm = Helper.getConfig(fileCommissionVip);
 
-  let hhVip = lsComm; // usdt 7 tầng
-  let refFrom /* ref id của người mua vip */,
-    uplineID; /* ref id của người giới thiệu người đang mua vip */
-  // lấy refFrom và uplineID
-  await new Promise((res, rej) => {
-    db.query(
-      `SELECT upline_id, ref_code, level_vip FROM users WHERE email = ?`,
-      [email],
-      (error, results, fields) => {
-        refFrom = results[0].ref_code; //lấy ref code của mình mà người khác đăng ký
-        uplineID = results[0].upline_id; //lấy ref id của họ mà mình đăng ký
-        //let lvVip = results[0].level_vip;
-        res();
-      }
-    );
-  });
+//   let hhVip = lsComm; // usdt 7 tầng
+//   let refFrom /* ref id của người mua vip */,
+//     uplineID; /* ref id của người giới thiệu người đang mua vip */
+//   // lấy refFrom và uplineID
+//   await new Promise((res, rej) => {
+//     db.query(
+//       `SELECT upline_id, ref_code, level_vip FROM users WHERE email = ?`,
+//       [email],
+//       (error, results, fields) => {
+//         refFrom = results[0].ref_code; //lấy ref code của mình mà người khác đăng ký
+//         uplineID = results[0].upline_id; //lấy ref id của họ mà mình đăng ký
+//         //let lvVip = results[0].level_vip;
+//         res();
+//       }
+//     );
+//   });
 
-  if (uplineID == null) return;
+//   if (uplineID == null) return;
 
-  // cộng tiền thẳng vào ví, + vào hoa hồng vip
-  for (let u = 0; u < hhVip.length; u++) {
-    let amountDuocCong = hhVip[u].value * 1;
-    if (uplineID == null) break; // kết thúc
-    db.query(
-      // cộng commission_vip và money_usdt của người giới thiệu cấp trên tính từ người đang mua vip
-      `UPDATE users SET commission_vip = commission_vip + ?, money_usdt = money_usdt + ? where ref_code = ?`,
-      [amountDuocCong, amountDuocCong, uplineID],
-      (error, results, fields) => {
-        if (error) {
-          return error;
-        }
-        // in vào lịch sử hoa hồng VIP
-        // kiểm tra UPLINE ID của cấp trên
+//   // cộng tiền thẳng vào ví, + vào hoa hồng vip
+//   for (let u = 0; u < hhVip.length; u++) {
+//     let amountDuocCong = hhVip[u].value * 1;
+//     if (uplineID == null) break; // kết thúc
+//     db.query(
+//       // cộng commission_vip và money_usdt của người giới thiệu cấp trên tính từ người đang mua vip
+//       `UPDATE users SET commission_vip = commission_vip + ?, money_usdt = money_usdt + ? where ref_code = ?`,
+//       [amountDuocCong, amountDuocCong, uplineID],
+//       (error, results, fields) => {
+//         if (error) {
+//           return error;
+//         }
+//         // in vào lịch sử hoa hồng VIP
+//         // kiểm tra UPLINE ID của cấp trên
 
-        db.query(
-          // in vào commision_history
-          `INSERT INTO commission_history (email, ref_id, upline_id, vip_commission, type, created_at) 
-                    VALUES (?,?,?,?,?,now())`,
-          [
-            email,
-            uplineID,
-            refFrom,
-            amountDuocCong,
-            "hhv", // hoa hồng vip
-          ],
-          (error, results, fields) => {
-            if (error) {
-              return callback(error);
-            }
-            db.query(
-              // tiếp tục với các tầng còn lại đến khi không còn tầng nào nữa hoặc đến khi hết cả 7 tầng
-              `SELECT upline_id FROM users WHERE ref_code = ?`,
-              [
-                uplineID, // ref id của thằng F1
-              ],
-              (error, result, fields) => {
-                if (!!result[0].upline_id) {
-                  uplineID = result[0].upline_id; // ref id của F0
-                } else {
-                  uplineID = null;
-                }
-              }
-            );
-          }
-        );
-      }
-    );
-    await sleep(300);
-  }
-}
+//         db.query(
+//           // in vào commision_history
+//           `INSERT INTO commission_history (email, ref_id, upline_id, vip_commission, type, created_at) 
+//                     VALUES (?,?,?,?,?,now())`,
+//           [
+//             email,
+//             uplineID,
+//             refFrom,
+//             amountDuocCong,
+//             "hhv", // hoa hồng vip
+//           ],
+//           (error, results, fields) => {
+//             if (error) {
+//               return callback(error);
+//             }
+//             db.query(
+//               // tiếp tục với các tầng còn lại đến khi không còn tầng nào nữa hoặc đến khi hết cả 7 tầng
+//               `SELECT upline_id FROM users WHERE ref_code = ?`,
+//               [
+//                 uplineID, // ref id của thằng F1
+//               ],
+//               (error, result, fields) => {
+//                 if (!!result[0].upline_id) {
+//                   uplineID = result[0].upline_id; // ref id của F0
+//                 } else {
+//                   uplineID = null;
+//                 }
+//               }
+//             );
+//           }
+//         );
+//       }
+//     );
+//     await sleep(300);
+//   }
+// }
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -463,60 +463,60 @@ module.exports = {
     );
   },
   // UPDATE users SET money_usdt = money_usdt - ?, money_btc = money_btc - ?, money_eth = money_eth - ?, money_paypal = money_paypal - ?, money_vn = money_vn - ? WHERE nick_name = ?
-  addMoneyMember: (data, callback) => {
-    db.query(
-      `UPDATE users SET money_usdt = money_usdt - ?, money_btc = money_btc - ?, money_eth = money_eth - ?, money_paypal = money_paypal - ?, money_vn = money_vn - ? WHERE nick_name = ?`,
-      [data.aUSDT, data.aBTC, data.aETH, data.aPAYPAL, data.aVND, data.nick],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        Tele.sendMessThongBao(`🧑ADMIN vừa thực hiện trừ tiền tới người dùng: <b>${data.nick}</b>\n
-                    USDT: <b>-${data.aUSDT}</b>
-                    BTC: <b>-${data.aBTC}</b>
-                    ETH: <b>-${data.aETH}</b>
-                    PAYPAL: <b>-${data.aPAYPAL}</b>
-                    VNĐ: <b>-${data.aVND}</b>`);
-        return callback(null, results);
-      }
-    );
-  },
+  // addMoneyMember: (data, callback) => {
+  //   db.query(
+  //     `UPDATE users SET money_usdt = money_usdt - ?, money_btc = money_btc - ?, money_eth = money_eth - ?, money_paypal = money_paypal - ?, money_vn = money_vn - ? WHERE nick_name = ?`,
+  //     [data.aUSDT, data.aBTC, data.aETH, data.aPAYPAL, data.aVND, data.nick],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       Tele.sendMessThongBao(`🧑ADMIN vừa thực hiện trừ tiền tới người dùng: <b>${data.nick}</b>\n
+  //                   USDT: <b>-${data.aUSDT}</b>
+  //                   BTC: <b>-${data.aBTC}</b>
+  //                   ETH: <b>-${data.aETH}</b>
+  //                   PAYPAL: <b>-${data.aPAYPAL}</b>
+  //                   VNĐ: <b>-${data.aVND}</b>`);
+  //       return callback(null, results);
+  //     }
+  //   );
+  // },
   // update users set money_btc=money_btc+data.money_btc, money_eth=money_eth+data.money_eth, money_usdt=money_usdt+data.money_usdt, money_vn=money_vn+data.money_vn where id = data.id
   // INSERT INTO add_money_history (email, nick_name, type, price_USDT, price_BTC, price_ETH, price_PAYPAL, price_VN, created_at)
-  updateUserMoneyById: (data, callback) => {
-    db.query(
-      `update users set money_btc=money_btc+?, money_eth=money_eth+?, money_usdt=money_usdt+?, money_vn=money_vn+? where id = ?`,
-      [data.money_btc, data.money_eth, data.money_usdt, data.money_vn, data.id],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
+  // updateUserMoneyById: (data, callback) => {
+  //   db.query(
+  //     `update users set money_btc=money_btc+?, money_eth=money_eth+?, money_usdt=money_usdt+?, money_vn=money_vn+? where id = ?`,
+  //     [data.money_btc, data.money_eth, data.money_usdt, data.money_vn, data.id],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
 
-        db.query(
-          `INSERT INTO add_money_history (email, nick_name, type, price_USDT, price_BTC, price_ETH, price_PAYPAL, price_VN, created_at) 
-                 VALUES(?,?,?,?,?,?,?,?,now())`,
-          [
-            data.email,
-            data.nick_name,
-            data.type,
-            data.money_usdt,
-            data.money_btc,
-            data.money_eth,
-            data.money_paypal,
-            data.money_vn,
-          ]
-        );
-        Tele.sendMessThongBao(`🧑ADMIN vừa thực hiện thêm tiền tới người dùng: <b>${data.nick_name}</b>\n
-                    USDT: <b>${data.money_usdt}</b>
-                    BTC: <b>${data.money_btc}</b>
-                    ETH: <b>${data.money_eth}</b>
-                    PAYPAL: <b>${data.money_paypal}</b>
-                    VNĐ: <b>${data.money_vn}</b>`);
+  //       db.query(
+  //         `INSERT INTO add_money_history (email, nick_name, type, price_USDT, price_BTC, price_ETH, price_PAYPAL, price_VN, created_at) 
+  //                VALUES(?,?,?,?,?,?,?,?,now())`,
+  //         [
+  //           data.email,
+  //           data.nick_name,
+  //           data.type,
+  //           data.money_usdt,
+  //           data.money_btc,
+  //           data.money_eth,
+  //           data.money_paypal,
+  //           data.money_vn,
+  //         ]
+  //       );
+  //       Tele.sendMessThongBao(`🧑ADMIN vừa thực hiện thêm tiền tới người dùng: <b>${data.nick_name}</b>\n
+  //                   USDT: <b>${data.money_usdt}</b>
+  //                   BTC: <b>${data.money_btc}</b>
+  //                   ETH: <b>${data.money_eth}</b>
+  //                   PAYPAL: <b>${data.money_paypal}</b>
+  //                   VNĐ: <b>${data.money_vn}</b>`);
 
-        return callback(null, results);
-      }
-    );
-  },
+  //       return callback(null, results);
+  //     }
+  //   );
+  // },
   // update user đặt active = 1 và tạo conde_secure tạo 2 account live và demo cho user này với u_id của account được tạo ngẫu nhiên
   activeUser: (data, callback) => {
     db.query(
@@ -1081,127 +1081,127 @@ module.exports = {
     );
   },
   // nếu số dư money_paypal của người gửi đủ thì trừ số dư money_paypal của người thêm vào lịch sử trade_history và chờ duyệt và gửi money_paypal ở đâu đó trong hệ thống
-  WithDrawalPaypalAc: (data, callback) => {
-    db.query(
-      `select money_paypal from users where email = ? AND nick_name = ?`,
-      [data.email, data.nick_name],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        // phí rút usd
-        let phi = dataSys.feeRutPaypalAcc;
-        let tongPhi = Number(data.amS) + Number(phi);
-        if (results[0].money_paypal >= tongPhi) {
-          //======= Từ tiền tài khoản mình
-          db.query(
-            `update users set money_paypal = money_paypal - ? where email = ?`,
-            [tongPhi, data.email],
-            (error, results, fields) => {
-              if (error) {
-                return callback(error);
-              }
-              //==== IN vào lịch sử
-              db.query(
-                `insert into trade_history (from_u, to_u, type_key, type, currency, amount, note, status, created_at)
-                         values(?,?,?,?,?,?,?,?,now())`,
-                [
-                  data.nick_name,
-                  data.address,
-                  "rt", // Rút Tiền
-                  "Rút tiền tài khoản Paypal",
-                  "usd",
-                  data.amS,
-                  data.gc,
-                  1,
-                ]
-              );
+  // WithDrawalPaypalAc: (data, callback) => {
+  //   db.query(
+  //     `select money_paypal from users where email = ? AND nick_name = ?`,
+  //     [data.email, data.nick_name],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       // phí rút usd
+  //       let phi = dataSys.feeRutPaypalAcc;
+  //       let tongPhi = Number(data.amS) + Number(phi);
+  //       if (results[0].money_paypal >= tongPhi) {
+  //         //======= Từ tiền tài khoản mình
+  //         db.query(
+  //           `update users set money_paypal = money_paypal - ? where email = ?`,
+  //           [tongPhi, data.email],
+  //           (error, results, fields) => {
+  //             if (error) {
+  //               return callback(error);
+  //             }
+  //             //==== IN vào lịch sử
+  //             db.query(
+  //               `insert into trade_history (from_u, to_u, type_key, type, currency, amount, note, status, created_at)
+  //                        values(?,?,?,?,?,?,?,?,now())`,
+  //               [
+  //                 data.nick_name,
+  //                 data.address,
+  //                 "rt", // Rút Tiền
+  //                 "Rút tiền tài khoản Paypal",
+  //                 "usd",
+  //                 data.amS,
+  //                 data.gc,
+  //                 1,
+  //               ]
+  //             );
 
-              return callback(null, results);
-            }
-          );
-        } else {
-          return callback(null);
-        }
-      }
-    );
-  },
+  //             return callback(null, results);
+  //           }
+  //         );
+  //       } else {
+  //         return callback(null);
+  //       }
+  //     }
+  //   );
+  // },
   // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận
-  WithDrawalPaypalNB: (data, callback) => {
-    db.query(
-      // lấy số dư money_paypal của user
-      `select money_paypal from users where email = ? AND nick_name = ?`,
-      [data.email, data.nick_name],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        // phí rút 0 usdt
-        let phi = dataSys.feeRutPaypalNoiBo;
-        let tongPhi = Number(data.amS) + Number(phi);
+  // WithDrawalPaypalNB: (data, callback) => {
+  //   db.query(
+  //     // lấy số dư money_paypal của user
+  //     `select money_paypal from users where email = ? AND nick_name = ?`,
+  //     [data.email, data.nick_name],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       // phí rút 0 usdt
+  //       let phi = dataSys.feeRutPaypalNoiBo;
+  //       let tongPhi = Number(data.amS) + Number(phi);
 
-        if (results[0].money_paypal >= tongPhi) {
-          db.query(
-            // trừ money_paypal của người gửi
-            `update users set money_paypal = money_paypal - ? where email = ?`,
-            [tongPhi, data.email]
-          );
-          db.query(
-            // cộng money_paypal của người nhận
-            `update users set money_paypal = money_paypal + ? where nick_name = ?`,
-            [Number(data.amS), data.nick],
-            (error, results, fields) => {
-              if (error) {
-                return callback(error);
-              }
-              db.query(
-                // thêm bản ghi trade_history
-                `insert into trade_history (from_u, to_u, type_key, type, currency, amount, note, status, created_at) 
-                            values (?,?,?,?,?,?,?,?,now())`,
-                [
-                  data.nick_name,
-                  data.nick,
-                  "rt", // Rút Tiền
-                  "Rút tiền Paypal (Nội bộ)",
-                  "usd",
-                  data.amS,
-                  data.gc,
-                  1,
-                ],
-                (error, results, fields) => {
-                  if (error) {
-                    return callback(error);
-                  }
-                }
-              );
+  //       if (results[0].money_paypal >= tongPhi) {
+  //         db.query(
+  //           // trừ money_paypal của người gửi
+  //           `update users set money_paypal = money_paypal - ? where email = ?`,
+  //           [tongPhi, data.email]
+  //         );
+  //         db.query(
+  //           // cộng money_paypal của người nhận
+  //           `update users set money_paypal = money_paypal + ? where nick_name = ?`,
+  //           [Number(data.amS), data.nick],
+  //           (error, results, fields) => {
+  //             if (error) {
+  //               return callback(error);
+  //             }
+  //             db.query(
+  //               // thêm bản ghi trade_history
+  //               `insert into trade_history (from_u, to_u, type_key, type, currency, amount, note, status, created_at) 
+  //                           values (?,?,?,?,?,?,?,?,now())`,
+  //               [
+  //                 data.nick_name,
+  //                 data.nick,
+  //                 "rt", // Rút Tiền
+  //                 "Rút tiền Paypal (Nội bộ)",
+  //                 "usd",
+  //                 data.amS,
+  //                 data.gc,
+  //                 1,
+  //               ],
+  //               (error, results, fields) => {
+  //                 if (error) {
+  //                   return callback(error);
+  //                 }
+  //               }
+  //             );
 
-              return callback(null, results);
-            }
-          );
-        } else {
-          return callback(null);
-        }
-      }
-    );
-  },
+  //             return callback(null, results);
+  //           }
+  //         );
+  //       } else {
+  //         return callback(null);
+  //       }
+  //     }
+  //   );
+  // },
   // select, money_usdt as usdt, money_eth as eth, money_btc as btc, money_paypal as paypal, from users where email = ?
-  BalanceWallet: (email, callback) => {
-    db.query(
-      `select 
-                money_usdt as usdt,
-                money_eth as eth,
-                money_btc as btc,
-                money_paypal as paypal 
-                from users where email = ?`,
-      [email],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        return callback(null, results[0]);
-      }
-    );
-  },
+  // BalanceWallet: (email, callback) => {
+  //   db.query(
+  //     `select 
+  //               money_usdt as usdt,
+  //               money_eth as eth,
+  //               money_btc as btc,
+  //               money_paypal as paypal 
+  //               from users where email = ?`,
+  //     [email],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       return callback(null, results[0]);
+  //     }
+  //   );
+  // },
   // giảm money_usdt của user đi và tăng balance của account live lên tạo bản ghi trade_history mới
   DepositToWallet: (data, callback) => {
     const redataSys = Helper.getConfig(fileSys);
@@ -1263,57 +1263,57 @@ module.exports = {
     }
   },
   // trừ tiền mua vip và tăng vip cho user in vào trade_history(nd: mua vip) cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user
-  UserBuyVIP: (data, callback) => {
-    const redataSys = Helper.getConfig(fileSys);
+  // UserBuyVIP: (data, callback) => {
+  //   const redataSys = Helper.getConfig(fileSys);
 
-    let currUse = redataSys.typeCurrUseSys.toLowerCase();
-    let money = 0;
-    if (currUse == "usdt" || currUse == "paypal") {
-      money = data.amount;
-    } else if (currUse == "eth") {
-      money = data.amount / currUse.quotePriceETH;
-    } else if (currUse == "btc") {
-      money = data.amount / currUse.quotePriceBTC;
-    }
+  //   let currUse = redataSys.typeCurrUseSys.toLowerCase();
+  //   let money = 0;
+  //   if (currUse == "usdt" || currUse == "paypal") {
+  //     money = data.amount;
+  //   } else if (currUse == "eth") {
+  //     money = data.amount / currUse.quotePriceETH;
+  //   } else if (currUse == "btc") {
+  //     money = data.amount / currUse.quotePriceBTC;
+  //   }
 
-    db.query(
-      // trừ tiền mua vip và up lên vip level_vip = 1
-      `update users set money_${currUse} = money_${currUse} - ?, vip_user = 1, level_vip = 1 where email = ?`,
-      [money, data.email],
-      (error, results, fields) => {
-        if (error) {
-          return callback(error);
-        }
-        //==== IN vào lịch sử
-        db.query(
-          // in vào trade_history với nội dung mua vip
-          `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
-                values(?,?,?,?,?,?,?,?,?,now())`,
-          [
-            data.email,
-            data.nick,
-            data.nick,
-            "mv", // Mua Vip
-            "Mua thành viên VIP",
-            currUse,
-            data.amount,
-            "",
-            1,
-          ],
-          (error, results, fields) => {
-            if (error) {
-              return callback(error);
-            }
+  //   db.query(
+  //     // trừ tiền mua vip và up lên vip level_vip = 1
+  //     `update users set money_${currUse} = money_${currUse} - ?, vip_user = 1, level_vip = 1 where email = ?`,
+  //     [money, data.email],
+  //     (error, results, fields) => {
+  //       if (error) {
+  //         return callback(error);
+  //       }
+  //       //==== IN vào lịch sử
+  //       db.query(
+  //         // in vào trade_history với nội dung mua vip
+  //         `insert into trade_history (email, from_u, to_u, type_key, type, currency, amount, note, status, created_at)
+  //               values(?,?,?,?,?,?,?,?,?,now())`,
+  //         [
+  //           data.email,
+  //           data.nick,
+  //           data.nick,
+  //           "mv", // Mua Vip
+  //           "Mua thành viên VIP",
+  //           currUse,
+  //           data.amount,
+  //           "",
+  //           1,
+  //         ],
+  //         (error, results, fields) => {
+  //           if (error) {
+  //             return callback(error);
+  //           }
 
-            // chia tiền Hoa Hồng VIP cho F1 của mình 50%
-            // kiểm tra ai là f1 của mình
-            CongTienHoaHongVIP(data.email);
-          }
-        );
-        return callback(null, results);
-      }
-    );
-  },
+  //           // chia tiền Hoa Hồng VIP cho F1 của mình 50%
+  //           // kiểm tra ai là f1 của mình
+  //           CongTienHoaHongVIP(data.email);
+  //         }
+  //       );
+  //       return callback(null, results);
+  //     }
+  //   );
+  // },
   // lấy rất nhiều thông tin về phân cấp
   getNguoiGioiThieu: async (email, callback) => {
     let obj = {
@@ -2865,31 +2865,31 @@ module.exports = {
       tsTNVN: 0, // tổng số tiền nạp VN
     };
 
-    await new Promise((res, rej) => {
-      //=====================
-      db.query(
-        `SELECT COUNT(id) as nNDK, 
-                    SUM(money_paypal) as tsTNPAYPAL, 
-                    SUM(money_eth) as tsTNETH, 
-                    SUM(money_btc) as tsTNBTC, 
-                    SUM(money_usdt) as tsTNUSD, 
-                    SUM(money_vn) as tsTNVN 
-                    FROM users WHERE active = 1 AND marketing = 0`,
-        (error, results, fields) => {
-          if (error) {
-            return callback(error);
-          }
+    // await new Promise((res, rej) => {
+    //   //=====================
+    //   db.query(
+    //     `SELECT COUNT(id) as nNDK, 
+    //                 SUM(money_paypal) as tsTNPAYPAL, 
+    //                 SUM(money_eth) as tsTNETH, 
+    //                 SUM(money_btc) as tsTNBTC, 
+    //                 SUM(money_usdt) as tsTNUSD, 
+    //                 SUM(money_vn) as tsTNVN 
+    //                 FROM users WHERE active = 1 AND marketing = 0`,
+    //     (error, results, fields) => {
+    //       if (error) {
+    //         return callback(error);
+    //       }
 
-          obj.nNDK = results[0].nNDK;
-          obj.tsTNPAYPALN = results[0].tsTNPAYPAL;
-          obj.tsTNUSDN = results[0].tsTNUSD;
-          obj.tsTNBTCN = results[0].tsTNBTC;
-          obj.tsTNETHN = results[0].tsTNETH;
-          obj.tsTNVNN = results[0].tsTNVN;
-          res();
-        }
-      );
-    });
+    //       obj.nNDK = results[0].nNDK;
+    //       obj.tsTNPAYPALN = results[0].tsTNPAYPAL;
+    //       obj.tsTNUSDN = results[0].tsTNUSD;
+    //       obj.tsTNBTCN = results[0].tsTNBTC;
+    //       obj.tsTNETHN = results[0].tsTNETH;
+    //       obj.tsTNVNN = results[0].tsTNVN;
+    //       res();
+    //     }
+    //   );
+    // });
 
     await new Promise((res, rej) => {
       //===================

@@ -26,6 +26,8 @@
     "ejs": "^3.1.6",
     "ethereumjs-common": "^1.5.2",
     "ethereumjs-tx": "^2.1.2",
+    "ethereumjs-util": "^7.1.5",
+    "ethers": "^5.0.0",
     "etherscan-api": "^10.0.5",
     "express": "^4.17.1",
     "ipware": "^2.0.0",

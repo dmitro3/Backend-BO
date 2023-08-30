@@ -115,9 +115,9 @@ app.get("/checkEmail/:email", checkToken, checkUserEmail);
 // đổi pass user bằng pass cũ
 app.patch("/updatePassword", checkToken, updateUserPasswordByEmail);
 
-// trigger tại AccountAllMemberlist.vue Tạo tài khoản => DataViewSidebar.Vue phía admin và HoSoUser.vue => HoSoSetting.vue (user ko có chỗ trigger)
+// trigger tại AccountAllMemberList.vue Tạo tài khoản => DataViewSidebar.Vue phía admin và HoSoUser.vue => HoSoSetting.vue (user ko có chỗ trigger)
 // update số dư của btc, eth, usdt, vnd của user và thêm bản ghi add_money_history
-app.patch("/updateMoney", checkToken, updateUserMoneyById);
+// app.patch("/updateMoney", checkToken, updateUserMoneyById);
 
 // trigger tại AccountAgencyList.vue AccountAllMemberList.vue đều là phía admin
 // chuyển trạng thái active của user thành 0 và deleted_at = now()
@@ -184,39 +184,39 @@ app.get("/listbo", checkToken, listHisBO);
 
 // trigger tại src/pages/trade/navbar/components/Profile.vue TradeMain/BarVertical_BarHorizontal/Profile
 // giảm blance trong account và tăng money_usdt trong users và in vào trade_history
-app.post("/live-to-usdt", checkToken, LiveToUsdt);
+// app.post("/live-to-usdt", checkToken, LiveToUsdt);
 
 // trigger tại src/pages/trade/navbar/components/Profile.vue TradeMain/BarVertical_BarHorizontal/Profile
 // giảm money_usdt trong users và tăng balance trong acount và in vào trade_history
-app.post("/usdt-to-live", checkToken, UsdtToLive);
+// app.post("/usdt-to-live", checkToken, UsdtToLive);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
 // trừ money_usdt users gửi cộng money_usdt users nhận insert bản ghi trade_history gửi thông bảo telegram
-app.post("/withdrawal", checkToken, WithDrawalNoiBo);
+// app.post("/withdrawal", checkToken, WithDrawalNoiBo);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
 // trừ money_usdt user gửi và cộng money_usdt user nhận in vào trade_history và phải thực hiện chuyển tiền ERC20 ở đâu đó
-app.post("/withdrawal-erc", checkToken, WithDrawalERC);
+// app.post("/withdrawal-erc", checkToken, WithDrawalERC);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
 // trừ money_usdt user lưu vào lịch sử trade_history và phải thực hiện chuyển tiền BSC20 ở đâu đó
-app.post("/withdrawal-bsc", checkToken, WithDrawalBSC);
+// app.post("/withdrawal-bsc", checkToken, WithDrawalBSC);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
 // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận vứt đi 
-app.post("/paypal/withdrawal", checkToken, WithDrawalPaypalNB);
+// app.post("/paypal/withdrawal", checkToken, WithDrawalPaypalNB);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
 // trừ số dư money_paypal của người gửi thêm bản ghi trade_history và chờ duyệt và gửi money_paypal ở đâu đó trong hệ thống
-app.post("/paypal/withdrawal-acc", checkToken, WithDrawalPaypalAc);
+// app.post("/paypal/withdrawal-acc", checkToken, WithDrawalPaypalAc);
 
 // trigger tại Wallet(trigger khi created) Exchange(trigger khi mount) NapRutTien(trigger khi mount) Profile(trigger khi được mở popup nạp nhanh)
 // lấy money_usdt, money_eth, money_btc, money_paypal từ user bằng email
-app.get("/balance-wallet", checkToken, BalanceWallet);
+// app.get("/balance-wallet", checkToken, BalanceWallet);
 
 // trigger tại TradeMain/BarVertical_BarHorizontal/Profile
 // giảm money_usdt của user đi  và tăng balance của account live lên tạo bản ghi trade_history mới
-app.post("/usdt-wallet", checkToken, DepositToWallet);
+// app.post("/usdt-wallet", checkToken, DepositToWallet);
 
 // trigger tại src/views/trading/Wallet
 // tạo bản ghi trade_history về user nạp tiền và chờ duyệt
@@ -227,7 +227,7 @@ app.post("/accept-deposit", checkToken, DepositRequest);
 
 // trigger tại user/affiliate/general Affiliate.vue
 // trừ tiền mua vip set vip cho user chia tiền hoa hồng cho tối đa 7 tầng người giới thiệu của user
-app.post("/buy-vip", checkToken, UserBuyVIP);
+// app.post("/buy-vip", checkToken, UserBuyVIP);
 
 // trigger tại history/data-list/list-deposit-view TradeHistory.vue 
 // lấy các thông số thắng thua từ bet_history và account để xem
@@ -290,7 +290,8 @@ app.post("/agency-search-lv", checkToken, getAgencySearchLevel);
 app.post("/agency-search-name", checkToken, getAgencySearchName);
 
 // có lẽ là trừ tiền các ví 1 cách thủ công xong cộng lại balance cho account của tài khoản đấy
-app.post("/addMoneyMember", checkToken, addMoneyMember);
+// trigger tại portal/tool/data-tool/add-money bỏ phía admin đi và xoá api này
+// app.post("/addMoneyMember", checkToken, addMoneyMember);
 
 // Trigger tại LogRegForGet.vue 
 // luồng trên client như sau khi user trigger ("/login", loginUser) nếu isG2FA == 1 => user sẽ phải trigger cái này xong mới được đưa vào màn chính
@@ -325,3 +326,16 @@ app.post("/getListNotifi", checkToken, getListNotifi);
 app.post("/updateListNotifi", checkToken, updateListNotifi);
 
 module.exports = app;
+
+// analytics sửa lại tạm bỏ query này SELECT COUNT(id) as nNDK, SUM(money_paypal) as tsTNPAYPAL, SUM(money_eth) as tsTNETH, SUM(money_btc) as tsTNBTC, SUM(money_usdt) as tsTNUSD, SUM(money_vn) as tsTNVN FROM users WHERE active = 1 AND marketing = 0
+
+
+// addMoneyMember portal/tool/data-tool/add-money // đã bỏ
+// updateMoney trigger tại AccountAllMemberList.vue Tạo tài khoản => DataViewSidebar.Vue phía admin // đã bỏ
+// balance-wallet trigger tại Wallet(trigger khi created) Exchange(trigger khi mount) NapRutTien(trigger khi mount) Profile(trigger khi được mở popup nạp nhanh) // đã bỏ
+// WithDrawalPaypalAc trigger tại src/views/trading/Wallet/NapRutTien // đã bỏ
+// WithDrawalPaypalNB trigger tại src/views/trading/Wallet/NapRutTien // đã bỏ
+// buy-vip trigger tại user/affiliate/general Affiliate.vue đã bỏ
+// usdt-wallet(checkMoneyUser) trigger tại TradeMain/BarVertical_BarHorizontal/Profile, Wallet
+// usdt-to-live, live-to-usdt trigger tại TradeMain/BarVertical_BarHorizontal/Profile, Wallet
+// withdrawal, withdrawal-erc, withdrawal-bsc trigger tại src/views/trading/Wallet/NapRutTien

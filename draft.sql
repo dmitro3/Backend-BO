@@ -5731,11 +5731,21 @@ CREATE TABLE `users` (
     `super_user` int DEFAULT '0',
     `manage_supers` int DEFAULT '0',
     `offer_account` int DEFAULT '0', -- không dùng đến
-    `money_eth` decimal(20, 4) DEFAULT '0.0000', -- số tiền eth thuộc ví của user
-    `money_btc` decimal(20, 4) DEFAULT '0.0000', -- số tiền btc thuộc ví của user
-    `money_usdt` decimal(20, 4) DEFAULT '0.0000', -- số tiền usdt thuộc ví của user
-    `money_vn` decimal(20, 4) DEFAULT '0.0000', -- số tiền vnd thuộc ví của user
-    `money_paypal` decimal(20, 4) DEFAULT '0.0000', -- số tiền paypal thuộc ví của user
+    `btc_balance` decimal(20, 4) DEFAULT '0.0000',
+    `eth_balance` decimal(20, 4) DEFAULT '0.0000',
+    `bnb_balance` decimal(20, 4) DEFAULT '0.0000',
+    `matic_balance` decimal(20, 4) DEFAULT '0.0000',
+    `usdt_eth_balance` decimal(20, 4) DEFAULT '0.0000',
+    `usdt_bsc_balance` decimal(20, 4) DEFAULT '0.0000',
+    `usdt_matic_balance` decimal(20, 4) DEFAULT '0.0000',
+    `usdc_eth_balance` decimal(20, 4) DEFAULT '0.0000',
+    `usdc_bsc_balance` decimal(20, 4) DEFAULT '0.0000',
+    `usdc_matic_balance` decimal(20, 4) DEFAULT '0.0000',
+    -- `money_eth` decimal(20, 4) DEFAULT '0.0000', -- số tiền eth thuộc ví của user
+    -- `money_btc` decimal(20, 4) DEFAULT '0.0000', -- số tiền btc thuộc ví của user
+    -- `money_usdt` decimal(20, 4) DEFAULT '0.0000', -- số tiền usdt thuộc ví của user
+    -- `money_vn` decimal(20, 4) DEFAULT '0.0000', -- số tiền vnd thuộc ví của user
+    -- `money_paypal` decimal(20, 4) DEFAULT '0.0000', -- số tiền paypal thuộc ví của user
     `money_deposit` decimal(20, 4) DEFAULT '0.0000', -- ko dùng đến
     `money_withdrawal` decimal(20, 4) DEFAULT '0.0000', -- ko dùng đến
     `super_account` int DEFAULT '0', -- ko dùng đến
@@ -5750,13 +5760,15 @@ CREATE TABLE `users` (
     `pending_commission` int DEFAULT '0', -- tổng hoa hồng từ các giao dịch của cấp dưới
     `commission_vip` int DEFAULT '0',
     `commission_update` varchar(255) DEFAULT NULL,
-    `address_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `address_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `address_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `privateKey_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `privateKey_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `privateKey_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `wif_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `address_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `address_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `address_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `privateKey_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `privateKey_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `privateKey_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
+    -- `wif_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
+    `crypted_evm_wallet` JSON,
+    `crypted_btc_wallet` JSON,
     `completed_profile` int DEFAULT '0', -- không dùng đến
     `active_2fa` int DEFAULT '0', -- trạng thái bảo mật 2fa đã được kích hoạt hay chưa
     `secret_2fa` varchar(255) DEFAULT NULL, -- mã qr 2fa 

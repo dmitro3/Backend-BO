@@ -1452,77 +1452,77 @@ module.exports = {
     });
   },
   // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận 
-  WithDrawalPaypalNB: (req, res) => {
-    const body = req.body;
+  // WithDrawalPaypalNB: (req, res) => {
+  //   const body = req.body;
 
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        body["email"] = decoded.result.email;
-        body["nick_name"] = decoded.result.nick_name;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       body["email"] = decoded.result.email;
+  //       body["nick_name"] = decoded.result.nick_name;
 
-        WithDrawalPaypalNB(body, (err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (!results) {
-            return res.json({
-              success: 0,
-              message: "Faile to send user",
-            });
-          }
-          return res.json({
-            success: 1,
-            message: "Send success",
-          });
-        });
-      }
-    });
-  },
+  //       WithDrawalPaypalNB(body, (err, results) => {
+  //         if (err) {
+  //           console.log(err);
+  //           return;
+  //         }
+  //         if (!results) {
+  //           return res.json({
+  //             success: 0,
+  //             message: "Faile to send user",
+  //           });
+  //         }
+  //         return res.json({
+  //           success: 1,
+  //           message: "Send success",
+  //         });
+  //       });
+  //     }
+  //   });
+  // },
   // nếu số dư money_paypal của người gửi đủ thì trừ số dư money_paypal của người thêm vào lịch sử trade_history và chờ duyệt và gửi money_paypal ở đâu đó trong hệ thống
-  WithDrawalPaypalAc: (req, res) => {
-    const body = req.body;
+  // WithDrawalPaypalAc: (req, res) => {
+  //   const body = req.body;
 
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        body["email"] = decoded.result.email;
-        body["nick_name"] = decoded.result.nick_name;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       body["email"] = decoded.result.email;
+  //       body["nick_name"] = decoded.result.nick_name;
 
-        WithDrawalPaypalAc(body, (err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (!results) {
-            return res.json({
-              success: 0,
-              message: "Faile to send user",
-            });
-          }
-          return res.json({
-            success: 1,
-            message: "Send success",
-          });
-        });
-      }
-    });
-  },
+  //       WithDrawalPaypalAc(body, (err, results) => {
+  //         if (err) {
+  //           console.log(err);
+  //           return;
+  //         }
+  //         if (!results) {
+  //           return res.json({
+  //             success: 0,
+  //             message: "Faile to send user",
+  //           });
+  //         }
+  //         return res.json({
+  //           success: 1,
+  //           message: "Send success",
+  //         });
+  //       });
+  //     }
+  //   });
+  // },
   // lấy money_usdt, money_eth, money_btc, money_paypal từ user bằng email
   BalanceWallet: (req, res) => {
     let token = req.get("authorization");
@@ -1649,56 +1649,56 @@ module.exports = {
   },
   // kiểm tra user có đủ tiền không nếu đủ thì tiến hành mua vip
   // trừ tiền mua vip và tăng vip cho user cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user 
-  UserBuyVIP: (req, res) => {
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        let email = decoded.result.email;
-        let nick = decoded.result.nick_name;
+  // UserBuyVIP: (req, res) => {
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       let email = decoded.result.email;
+  //       let nick = decoded.result.nick_name;
 
-        let obj = {
-          email: email,
-          amount: 100,
-          nick: nick,
-        };
+  //       let obj = {
+  //         email: email,
+  //         amount: 100,
+  //         nick: nick,
+  //       };
 
-        checkMoneyUser(email, (err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (results.balance >= 100) {
-            UserBuyVIP(obj, (err, results) => {
-              if (err) {
-                console.log(err);
-                return;
-              }
-              if (!results) {
-                return res.json({
-                  success: 0,
-                  message: "Faile",
-                });
-              }
-              return res.json({
-                success: 1,
-              });
-            });
-          } else {
-            return res.json({
-              success: 2,
-            });
-          }
-        });
-      }
-    });
-  },
+  //       checkMoneyUser(email, (err, results) => {
+  //         if (err) {
+  //           console.log(err);
+  //           return;
+  //         }
+  //         if (results.balance >= 100) {
+  //           UserBuyVIP(obj, (err, results) => {
+  //             if (err) {
+  //               console.log(err);
+  //               return;
+  //             }
+  //             if (!results) {
+  //               return res.json({
+  //                 success: 0,
+  //                 message: "Faile",
+  //               });
+  //             }
+  //             return res.json({
+  //               success: 1,
+  //             });
+  //           });
+  //         } else {
+  //           return res.json({
+  //             success: 2,
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // },
   // lấy nhiều thông tin về đại lý cấp dưới 
   getNguoiGioiThieu: (req, res) => {
     let token = req.get("authorization");
@@ -2350,3 +2350,4 @@ module.exports = {
     });
   },
 };
+// addMoneyMember updateUserMoneyById BalanceWallet getListAnalytics
