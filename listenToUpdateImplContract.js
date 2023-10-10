@@ -38,10 +38,11 @@ const main = async () => {
   );
 
   usdtMaticContract.events
-    .ProxyUpdated()
+    .Transfer()
     .on("data", async (event) => {
+      console.log(event.returnValues)
       // event ProxyUpdated(address indexed _new, address indexed _old);
-      const newImplAddress = event.returnValues._new;
+      // const newImplAddress = event.returnValues._new;
       try {
         const getAbiUsdtImplMatic = await axios.get(
           `https://api.polygonscan.com/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.MATIC_SCAN_API}`
@@ -63,84 +64,84 @@ const main = async () => {
     .on("error", (error) => {
       console.error("get event caught Error");
     });
-  usdcMaticContract.events
-    .ProxyUpdated()
-    .on("data", async (event) => {
-      // event ProxyUpdated(address indexed _new, address indexed _old)
-      const newImplAddress = event.returnValues._new;
-      try {
-        const getAbiUsdcImplMatic = await axios.get(
-          `https://api.polygonscan.com/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.MATIC_SCAN_API}`
-        );
-        if (
-          getAbiUsdcImplMatic.status == 200 &&
-          getAbiUsdcImplMatic.data.status == "1"
-        ) {
-          const ABI = getAbiUsdcImplMatic.data.result;
-          Helper.setABI(usdcMATICAbiFileName, JSON.parse(ABI));
-          console.log("set new usdc abi json file for matic mainnet");
-        } else {
-          console.log("cannot set: ", getAbiUsdcImplMatic);
-        }
-      } catch (error) {
-        console.log("get ABI caught Error");
-      }
-    })
-    .on("error", (error) => {
-      console.error("get event caught Error");
-    });
-  usdcErc20Contract.events
-    .Upgraded()
-    .on("data", async (event) => {
-      // event Upgraded(address implementation);
-      const newImplAddress = event.returnValues.implementation;
-      try {
-        const getAbiUsdcImplEth = await axios.get(
-          `https://api.etherscan.io/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.ETH_SCAN_API}`
-        );
-        if (
-          getAbiUsdcImplEth.status == 200 &&
-          getAbiUsdcImplEth.data.status == "1"
-        ) {
-          const ABI = getAbiUsdcImplEth.data.result;
-          Helper.setABI(usdcERC20AbiFileName, JSON.parse(ABI));
-          console.log("set new usdc abi json file for eth mainnet");
-        } else {
-          console.log("cannot set: ", getAbiUsdcImplEth);
-        }
-      } catch (error) {
-        console.log("get ABI caught Error");
-      }
-    })
-    .on("error", (error) => {
-      console.error("get event caught Error");
-    });
-  usdcBep20Contract.events
-    .Upgraded()
-    .on("data", async (event) => {
-      // event Upgraded(address indexed implementation);
-      const newImplAddress = event.returnValues.implementation;
-      try {
-        const getAbiUsdcImplBnb = await axios.get(
-          `https://api.bscscan.com/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.BSC_SCAN_API}`
-        );
-        if (
-          getAbiUsdcImplBnb.status == 200 &&
-          getAbiUsdcImplBnb.data.status == "1"
-        ) {
-          const ABI = getAbiUsdcImplBnb.data.result;
-          Helper.setABI(usdcBEP20AbiFileName, JSON.parse(ABI));
-          console.log("set new usdc abi json file for bsc mainnet");
-        } else {
-          console.log("cannot set: ", getAbiUsdcImplBnb);
-        }
-      } catch (error) {
-        console.log("get ABI caught Error");
-      }
-    })
-    .on("error", (error) => {
-      console.error("get event caught Error");
-    });
+  // usdcMaticContract.events
+  //   .ProxyUpdated()
+  //   .on("data", async (event) => {
+  //     // event ProxyUpdated(address indexed _new, address indexed _old)
+  //     const newImplAddress = event.returnValues._new;
+  //     try {
+  //       const getAbiUsdcImplMatic = await axios.get(
+  //         `https://api.polygonscan.com/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.MATIC_SCAN_API}`
+  //       );
+  //       if (
+  //         getAbiUsdcImplMatic.status == 200 &&
+  //         getAbiUsdcImplMatic.data.status == "1"
+  //       ) {
+  //         const ABI = getAbiUsdcImplMatic.data.result;
+  //         Helper.setABI(usdcMATICAbiFileName, JSON.parse(ABI));
+  //         console.log("set new usdc abi json file for matic mainnet");
+  //       } else {
+  //         console.log("cannot set: ", getAbiUsdcImplMatic);
+  //       }
+  //     } catch (error) {
+  //       console.log("get ABI caught Error");
+  //     }
+  //   })
+  //   .on("error", (error) => {
+  //     console.error("get event caught Error");
+  //   });
+  // usdcErc20Contract.events
+  //   .Upgraded()
+  //   .on("data", async (event) => {
+  //     // event Upgraded(address implementation);
+  //     const newImplAddress = event.returnValues.implementation;
+  //     try {
+  //       const getAbiUsdcImplEth = await axios.get(
+  //         `https://api.etherscan.io/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.ETH_SCAN_API}`
+  //       );
+  //       if (
+  //         getAbiUsdcImplEth.status == 200 &&
+  //         getAbiUsdcImplEth.data.status == "1"
+  //       ) {
+  //         const ABI = getAbiUsdcImplEth.data.result;
+  //         Helper.setABI(usdcERC20AbiFileName, JSON.parse(ABI));
+  //         console.log("set new usdc abi json file for eth mainnet");
+  //       } else {
+  //         console.log("cannot set: ", getAbiUsdcImplEth);
+  //       }
+  //     } catch (error) {
+  //       console.log("get ABI caught Error");
+  //     }
+  //   })
+  //   .on("error", (error) => {
+  //     console.error("get event caught Error");
+  //   });
+  // usdcBep20Contract.events
+  //   .Upgraded()
+  //   .on("data", async (event) => {
+  //     // event Upgraded(address indexed implementation);
+  //     const newImplAddress = event.returnValues.implementation;
+  //     try {
+  //       const getAbiUsdcImplBnb = await axios.get(
+  //         `https://api.bscscan.com/api?module=contract&action=getabi&address=${newImplAddress}&apikey=${process.env.BSC_SCAN_API}`
+  //       );
+  //       if (
+  //         getAbiUsdcImplBnb.status == 200 &&
+  //         getAbiUsdcImplBnb.data.status == "1"
+  //       ) {
+  //         const ABI = getAbiUsdcImplBnb.data.result;
+  //         Helper.setABI(usdcBEP20AbiFileName, JSON.parse(ABI));
+  //         console.log("set new usdc abi json file for bsc mainnet");
+  //       } else {
+  //         console.log("cannot set: ", getAbiUsdcImplBnb);
+  //       }
+  //     } catch (error) {
+  //       console.log("get ABI caught Error");
+  //     }
+  //   })
+  //   .on("error", (error) => {
+  //     console.error("get event caught Error");
+  //   });
 };
 
 const updateABI = async (network) => {
@@ -222,5 +223,7 @@ const updateABI = async (network) => {
     console.log("get ABI caught Error");
   }
 };
+
+const updateAddressABI = async (address) => {}
 
 main();

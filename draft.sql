@@ -5697,7 +5697,7 @@ CREATE TABLE `account` (
     PRIMARY KEY (`id`) USING BTREE
 )
 CREATE TABLE `users` (
-    `id` int NOT NULL AUTO_INCREMENT,
+    `id` int NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY,
     `email` varchar(255) DEFAULT NULL,
     `password` varchar(255) DEFAULT NULL,
     `permissions` varchar(255) DEFAULT NULL, -- nên bỏ không có trong logic server
@@ -5767,8 +5767,12 @@ CREATE TABLE `users` (
     -- `privateKey_ETH` varchar(255) DEFAULT NULL, -- ko dùng đến
     -- `privateKey_USDT` varchar(255) DEFAULT NULL, -- ko dùng đến
     -- `wif_BTC` varchar(255) DEFAULT NULL, -- ko dùng đến
-    `crypted_evm_wallet` JSON,
-    `crypted_btc_wallet` JSON,
+    `crypted_evm_native_wallet` varchar(2048) DEFAULT NULL,
+    `crypted_evm_erc20_wallet` varchar(2048) DEFAULT NULL,
+    `crypted_btc_wallet` varchar(2048) DEFAULT NULL,
+    `evm_native_address` varchar(255) DEFAULT NULL,
+    `evm_erc20_address` varchar(255) DEFAULT NULL,
+    `btc_address` varchar(255) DEFAULT NULL,
     `completed_profile` int DEFAULT '0', -- không dùng đến
     `active_2fa` int DEFAULT '0', -- trạng thái bảo mật 2fa đã được kích hoạt hay chưa
     `secret_2fa` varchar(255) DEFAULT NULL, -- mã qr 2fa 
@@ -5783,7 +5787,7 @@ CREATE TABLE `users` (
     `created_at` varchar(255) DEFAULT NULL,
     `updated_at` varchar(255) DEFAULT NULL,
     `deleted_at` varchar(255) DEFAULT NULL,
-    PRIMARY KEY (`id`) USING BTREE
+    -- PRIMARY KEY (`id`) USING BTREE
 ) 
 CREATE TABLE `notifi` (
     `id` int NOT NULL AUTO_INCREMENT,

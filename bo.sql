@@ -358,6 +358,7 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `trade_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+-- money_eth, money_btc, money_usdt, money_vn, money_paypal
 CREATE TABLE `trade_history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `email` varchar(255) DEFAULT NULL,
@@ -399,18 +400,20 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+-- address_BTC, address_ETH, address_USDT, privateKey_BTC, privateKey_ETH, privateKey_USDT, wif_BTC
+-- btc_balance, eth_balance, bnb_balance, matic_balance, usdt_eth_balance, usdt_bsc_balance, usdt_matic_balance, usdc_eth_balance, usdc_bsc_balance, usdc_matic_balance
 CREATE TABLE `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY,
+  `email` varchar(255) DEFAULT NULL UNIQUE,
   `password` varchar(255) DEFAULT NULL,
   `permissions` varchar(255) DEFAULT NULL,
   `last_login` varchar(255) DEFAULT NULL,
   `ref_code` varchar(255) DEFAULT NULL,
-  `nick_name` varchar(255) DEFAULT NULL,
+  `nick_name` varchar(255) DEFAULT NULL UNIQUE,
   `upline_id` varchar(255) DEFAULT NULL,
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
-  `username` varchar(255) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL UNIQUE,
   `address` varchar(255) DEFAULT NULL,
   `secondary_address` varchar(255) DEFAULT NULL,
   `job_position` varchar(255) DEFAULT NULL,
@@ -469,9 +472,14 @@ CREATE TABLE `users` (
   -- `privateKey_BTC` varchar(255) DEFAULT NULL,
   -- `privateKey_ETH` varchar(255) DEFAULT NULL,
   -- `privateKey_USDT` varchar(255) DEFAULT NULL,
-  -- `wif_BTC` varchar(255) DEFAULT NULL,
-  `crypted_evm_wallet` JSON,
-  `crypted_btc_wallet` JSON,
+  -- `wif_BTC` varchar(255) DEFAULT NULL, 
+  `crypted_evm_native_wallet` varchar(2048) DEFAULT NULL,
+  `crypted_evm_erc20_wallet` varchar(2048) DEFAULT NULL,
+  `crypted_btc_wallet` varchar(2048) DEFAULT NULL,
+  `evm_native_address` varchar(255) DEFAULT NULL,
+  `evm_erc20_address` varchar(255) DEFAULT NULL,
+  `btc_address` varchar(255) DEFAULT NULL,
+
   `completed_profile` int DEFAULT '0',
   `active_2fa` int DEFAULT '0',
   `secret_2fa` varchar(255) DEFAULT NULL,
@@ -487,7 +495,7 @@ CREATE TABLE `users` (
   `updated_at` varchar(255) DEFAULT NULL,
   `deleted_at` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1792 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

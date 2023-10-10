@@ -61,6 +61,7 @@ const {
   getListCmsHis,
   getListNotifi,
   updateListNotifi,
+  getAddressToDeposit,
 } = require("./user.controller");
 const router = require("express");
 const app = router();
@@ -74,6 +75,82 @@ app.use(function (req, res, next) {
   );
   next();
 });
+
+const db = require("./../../database");
+
+const EVMImpl = require("../../cryptoCurrencies/evmImpl");
+const Cryptor = require("../../cryptoCurrencies/crypto");
+const BitcoinImpl = require("../../cryptoCurrencies/bitcoinImpl");
+const evmImml = new EVMImpl("eth-testnet");
+const crypto = new Cryptor(false);
+const bitcoinImpl = new BitcoinImpl(false);
+
+app.post("/updateWallet", (req, res) => {
+  console.log("test thoi phai vut day nhe khong la bo me day");
+  const { email } = req.body;
+  if (!email)
+    return res.json({
+      success: 0,
+      message: "no email",
+    });
+  const bitcoinWallet = bitcoinImpl.createWallet();
+  const evmNativeWallet = evmImml.createWallet();
+  const evmErc20Wallet = evmImml.createWallet();
+
+  const btcAddress = bitcoinWallet.address;
+  const evmNativeAddress = evmNativeWallet.address;
+  const evmErc20Address = evmErc20Wallet.address;
+  if (
+    !bitcoinWallet.privateKey ||
+    !evmNativeWallet.privateKey ||
+    !evmErc20Wallet.privateKey ||
+    !btcAddress ||
+    !evmNativeAddress ||
+    !evmErc20Address
+  ) {
+    return res.json({
+      success: 0,
+      message: "update wallet caught error",
+    });
+  }
+
+  const encryptedBitCoinWallet = crypto.encryptByPublicKey(bitcoinWallet);
+  const encryptedEvmNativeWallet = crypto.encryptByPublicKey(evmNativeWallet);
+  const encryptedEvmERC20Wallet = crypto.encryptByPublicKey(evmErc20Wallet);
+
+  db.query(
+    `update users set crypted_evm_native_wallet = ?, crypted_evm_erc20_wallet = ?, crypted_btc_wallet = ?, 
+    evm_native_address = ?, evm_erc20_address = ?, btc_address = ?,
+    updated_at=now() where email = ?`,
+    [
+      encryptedEvmNativeWallet,
+      encryptedEvmERC20Wallet,
+      encryptedBitCoinWallet,
+      evmNativeAddress,
+      evmErc20Address,
+      btcAddress,
+      email,
+    ],
+    (error, results, fields) => {
+      if (error)
+        return res.json({
+          success: 0,
+          message: "update wallet caught error",
+        });
+      return res.json({
+        success: 1,
+        message: "update user wallet success",
+        data: {
+          bitcoinWallet,
+          evmNativeWallet,
+          evmErc20Wallet,
+        },
+      });
+    }
+  );
+});
+
+app.get("/getAddressToDeposit", getAddressToDeposit);
 // trigger tại LogRegForGet.vue
 // tạo bản ghi mới trong bảng users sau đó gửi email active đến email user /login?a=jsonWebToken
 app.post("/createAccount", createUserAccount);
@@ -144,38 +221,38 @@ app.post("/verifiedUser", checkToken, verifiedAccount);
 app.get("/getAgency", checkToken, getListAgency);
 
 // trigger tại AccountAgencyList.vue path account/list-agency-account
-// lấy ra những người có upline_id là ref_code của agency đấy chỉ lấy được tầng 1 
+// lấy ra những người có upline_id là ref_code của agency đấy chỉ lấy được tầng 1
 app.get("/viewTotalMAgency/:id", checkToken, viewMemberAgency);
 
 // trigger tại TradeMain.vue, khi đã có token chuyển thẳng vào app lấy thông tin user và update vào getData
-// trigger tại LogRegForGet.vue lấy thông tin user và update vào getData, 
+// trigger tại LogRegForGet.vue lấy thông tin user và update vào getData,
 // trigger tại src/views/trading/Index.vue khi connect với socket sẽ lấy thông tin user và update vào getData
 // lấy thông tin user và account dựa trên email cực kỳ phức tạp cần phải chú ý
 app.get("/info", checkToken, getInfoUser);
 
 // trigger tại DashboardAnalytics.vue phía admin
-// lấy 15 dữ liệu tổng hợp tại 4 bảng users, trade_history, bet_history, commission_history 
+// lấy 15 dữ liệu tổng hợp tại 4 bảng users, trade_history, bet_history, commission_history
 app.get("/analytics", checkToken, getListAnalytics);
 
 // trigger tại HoSoUser.vue => HoSoSetting.vue
 // update user dựa trên email: first_name,last_name, country, so_cmnd, verified = 2 update khi user gửi passport lên cho hệ thống
 app.post("/update-info", checkToken, updateInfoVerify);
 
-// trigger tại HoSoUser => GoogleAuth => src/pages/trade/slidebar/2FAGoogle.vue 
+// trigger tại HoSoUser => GoogleAuth => src/pages/trade/slidebar/2FAGoogle.vue
 // create qr code and secret.base32 và gửi cho user
 app.get("/create-gg2fa", checkToken, createGoogle2FA);
 
-// trigger tại HoSoUser => GoogleAuth => src/pages/trade/slidebar/2FAGoogle.vue 
+// trigger tại HoSoUser => GoogleAuth => src/pages/trade/slidebar/2FAGoogle.vue
 // dựa trên đoạn mã qr đã tạo cho user lúc đầu validate mã 2fa rồi update mã secret_2fa = qr vào db
 // bỏ code_secure(code dùng 1 lần) đi và update secret_2fa
 app.post("/update-gg2fa", checkToken, activeGoogle2FA);
 
-// trigger tại HoSoUser => GoogleAuth => src/pages/trade/slidebar/2FAGoogle.vue 
-// lấy mã qr được lưu trong DB của user validate với mã 2fa rồi xoá secrete_2fa trong DBV đi 
+// trigger tại HoSoUser => GoogleAuth => src/pages/trade/slidebar/2FAGoogle.vue
+// lấy mã qr được lưu trong DB của user validate với mã 2fa rồi xoá secrete_2fa trong DBV đi
 app.post("/disable-gg2fa", checkToken, unActiveGoogle2FA);
 
 // trigger tại src/views/trading/Wallet.vue src/pages/trade/navbar/components/Profile.vue
-// update account balance của tài khoải demo 
+// update account balance của tài khoải demo
 app.put("/demo", checkToken, reloadMoneyDemo);
 
 // trigger tại HisOrderBet.vue, TradeMain/VerticalNavMenu/ListMenu/HisOrderBet
@@ -203,7 +280,7 @@ app.get("/listbo", checkToken, listHisBO);
 // app.post("/withdrawal-bsc", checkToken, WithDrawalBSC);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
-// nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận vứt đi 
+// nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận vứt đi
 // app.post("/paypal/withdrawal", checkToken, WithDrawalPaypalNB);
 
 // trigger tại src/views/trading/Wallet/NapRutTien nó là 1 cái popup chỉ có chiều rút ko có nạp
@@ -229,12 +306,12 @@ app.post("/accept-deposit", checkToken, DepositRequest);
 // trừ tiền mua vip set vip cho user chia tiền hoa hồng cho tối đa 7 tầng người giới thiệu của user
 // app.post("/buy-vip", checkToken, UserBuyVIP);
 
-// trigger tại history/data-list/list-deposit-view TradeHistory.vue 
+// trigger tại history/data-list/list-deposit-view TradeHistory.vue
 // lấy các thông số thắng thua từ bet_history và account để xem
 app.get("/bo-statistics", checkToken, getBoStatistics);
 
 // trigger tại user/trade/history TradeHistory.vue
-// lấy 20 thông tin bet_history gần nhất của 1 account 
+// lấy 20 thông tin bet_history gần nhất của 1 account
 app.get("/history-order", checkToken, getListHisOrder);
 
 // trigger tại user/trade/history TradeHistory.vue
@@ -242,7 +319,7 @@ app.get("/history-order", checkToken, getListHisOrder);
 app.post("/history-order-date", checkToken, getListHisOrderDate);
 
 // trigger tại src/views/trading/Wallet.vue
-// lấy thông tin trade_history liên quan đến user 
+// lấy thông tin trade_history liên quan đến user
 app.get("/history-wallet", checkToken, getListHisTradeWallet);
 
 // trigger tại src/views/trading/Wallet.vue
@@ -254,7 +331,7 @@ app.get("/history-wallet/:page", checkToken, getListHisTradeWalletPage);
 app.get("/history-wallet-co", checkToken, getListHisTradeWalletHH);
 
 // trigger tại src/views/trading/Wallet.vue
-// lấy thông tin commision_history của user dựa trên ref_code theo kiểu phân trang 
+// lấy thông tin commision_history của user dựa trên ref_code theo kiểu phân trang
 app.get("/history-wallet-co/:page", checkToken, getListHisTradeWalletHHPage);
 
 // trigger tại src/views/trading/Wallet.vue
@@ -263,7 +340,11 @@ app.get("/history-wallet-trade", checkToken, getListHisTradeWalletWGD);
 
 // trigger tại src/views/trading/Wallet.vue
 // lấy thông tin chuyển tiền từ ví(money_usdt) => account live(balance) và từ account live => ví có phân trang
-app.get("/history-wallet-trade/:page", checkToken, getListHisTradeWalletWGDPage);
+app.get(
+  "/history-wallet-trade/:page",
+  checkToken,
+  getListHisTradeWalletWGDPage
+);
 
 // trigger tại user/affiliate/general Affiliate.vue phía user
 // lấy nhiều thông tin về đại lý cấp dưới cần để ý kỹ phía client nó ghép api thế nào
@@ -273,19 +354,19 @@ app.get("/presenter", checkToken, getNguoiGioiThieu);
 // lấy thanhtoan(tổng tiền chiết khấu) soluongGD(tổng số lượng giao dịch) sonhaGD(tổng số nhà giao dịch)
 app.get("/commission-details", checkToken, getComDetails);
 
-// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment 
-// lấy thanhtoan(tổng tiền chiết khấu) soluongGD(tổng số lượng giao dịch) sonhaGD(tổng số nhà giao dịch) theo kiểu phân trang 
+// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment
+// lấy thanhtoan(tổng tiền chiết khấu) soluongGD(tổng số lượng giao dịch) sonhaGD(tổng số nhà giao dịch) theo kiểu phân trang
 app.get("/commission-details/:page", checkToken, getComDetailsPage);
 
-// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment 
+// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment
 // dựa theo ngày lấy hanhtoan(tổng tiền chiết khấu), klgd, soluongGD(tổng số lượng giao dịch), doanhso
 app.post("/commission-details-date", checkToken, getComDetailsDate);
 
-// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment 
+// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment
 // lấy danh sách cấp dưới có dạng {cap1 = [{level_vip, pricePlay AS tklgd, ref_code, upline_id, nick_name}...], cap2...}
 app.post("/agency-search-lv", checkToken, getAgencySearchLevel);
 
-// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment 
+// trigger tại user/affiliate/general Affiliate.vue phần trigger đã được comment
 // lấy đái lý cấp 1 với cái tên gần giống cái tên client gửi lên
 app.post("/agency-search-name", checkToken, getAgencySearchName);
 
@@ -293,7 +374,7 @@ app.post("/agency-search-name", checkToken, getAgencySearchName);
 // trigger tại portal/tool/data-tool/add-money bỏ phía admin đi và xoá api này
 // app.post("/addMoneyMember", checkToken, addMoneyMember);
 
-// Trigger tại LogRegForGet.vue 
+// Trigger tại LogRegForGet.vue
 // luồng trên client như sau khi user trigger ("/login", loginUser) nếu isG2FA == 1 => user sẽ phải trigger cái này xong mới được đưa vào màn chính
 // xác minh mã 2fa bằng mã qr của user sau nếu hợp lệ thì lấy data trả cho user
 app.post("/login-2fa", loginG2FA);
@@ -302,15 +383,15 @@ app.post("/login-2fa", loginG2FA);
 app.get("/code-2fa", checkToken, sendCodeG2FA);
 
 // trigger tại account/list-all-account AccountAllMemberList
-// chuyển trạng thái marketing của users 
+// chuyển trạng thái marketing của users
 app.post("/changeAcc", checkToken, changeAccType);
 
 // trigger tại src/layouts/components/navbar/components/ProfileDropDown.vue tại admin
-// đổi pass cho admin 
+// đổi pass cho admin
 app.post("/changPassAd", checkToken, changPassAd);
 
 // trigger tại account/list-all-account AccountAllMemberList
-// lấy thông tin cấp 1 trong các khoảng thời gian khác nhau và lấy thông tin 7 tần còn lại 
+// lấy thông tin cấp 1 trong các khoảng thời gian khác nhau và lấy thông tin 7 tần còn lại
 app.post("/getListF1F7", checkToken, getListF1F7);
 
 // không trigger
@@ -328,7 +409,6 @@ app.post("/updateListNotifi", checkToken, updateListNotifi);
 module.exports = app;
 
 // analytics sửa lại tạm bỏ query này SELECT COUNT(id) as nNDK, SUM(money_paypal) as tsTNPAYPAL, SUM(money_eth) as tsTNETH, SUM(money_btc) as tsTNBTC, SUM(money_usdt) as tsTNUSD, SUM(money_vn) as tsTNVN FROM users WHERE active = 1 AND marketing = 0
-
 
 // addMoneyMember portal/tool/data-tool/add-money // đã bỏ
 // updateMoney trigger tại AccountAllMemberList.vue Tạo tài khoản => DataViewSidebar.Vue phía admin // đã bỏ

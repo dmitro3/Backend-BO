@@ -61,6 +61,7 @@ const {
   getListCmsHis,
   getListNotifi,
   updateListNotifi,
+  getAddressToDeposit,
 } = require("./user.service");
 
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
@@ -196,6 +197,31 @@ function sendLoginMail(data) {
 }
 
 module.exports = {
+  getAddressToDeposit: (req, res) => {
+    const { email } = req.query;
+    getAddressToDeposit(email, (err, results) => {
+      if (err) {
+        return res.json({
+          success: 0,
+          message: "get deposit address caught error",
+          data: err,
+        });
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "get deposit address failed",
+          data: null,
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "get deposit success",
+        data: results,
+      });
+    });
+  },
+
   // gửi user 1 email với đoạn link /reset-password?e=email phía client có thể tự thêm param email và access cái api này để đổi pass lỗ hổng bảo mật lớn
   forgotPassAccount: (req, res) => {
     let body = req.body;
@@ -330,7 +356,7 @@ module.exports = {
     });
   },
 
-  // tạo bản ghi mới trong users với địa chi ví eth và btc có kèm cả private_key sau đó gửi 
+  // tạo bản ghi mới trong users với địa chi ví eth và btc có kèm cả private_key sau đó gửi
   // data.email, data.nick_name, data.password, data.upline_id, makeid(7), account.address, account.address, account.privateKey, account.privateKey, adr.address, adr.wif, adr.private,
   createUserAccount: (req, res) => {
     const body = req.body;
@@ -453,7 +479,7 @@ module.exports = {
     });
   },
 
-  // kiểm tra email đã tồn tại chưa 
+  // kiểm tra email đã tồn tại chưa
   checkUserEmail: (req, res) => {
     const email = req.params.email;
     checkUserEmail(email, (err, results) => {
@@ -643,7 +669,7 @@ module.exports = {
     });
   },
   // kiểm tra code_secure (code dùng 1 lần) của user nếu đúng => validate mã 2fa của user bằng đoạn mã qr tạo ra trước đó nếu đúng thì update vào DB
-  // xoá code_secure (code dùng 1 lần) đi và update secret_2fa rồi gửi mail cho khách 
+  // xoá code_secure (code dùng 1 lần) đi và update secret_2fa rồi gửi mail cho khách
   activeGoogle2FA: (req, res) => {
     const body = req.body;
     let token = req.get("authorization");
@@ -662,7 +688,7 @@ module.exports = {
         // p : this.passwordSend
         let secret = body.s; // mã sao lưu // tự generate từ server gửi cho khách
         let token = body.t; // mã 2fa // lấy từ app google authenticator
-        let code = body.c; // code_secure // bằng cách nào đấy 
+        let code = body.c; // code_secure // lấy từ email
         let email = decoded.result.email;
         let password = body.p; // password
 
@@ -1130,7 +1156,7 @@ module.exports = {
     });
   },
 
-  // lấy ra những người có upline_id là ref_code của agency đấy chỉ lấy được tầng 1 
+  // lấy ra những người có upline_id là ref_code của agency đấy chỉ lấy được tầng 1
   viewMemberAgency: (req, res) => {
     const id = req.params.id;
     viewMemberAgency(id, (err, results) => {
@@ -1184,274 +1210,274 @@ module.exports = {
     });
   },
   // giảm balance trong account tăng money_usdt trong users và in vào trade_history
-  LiveToUsdt: (req, res) => {
-    const body = req.body;
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          message: "no no",
-        });
-      } else {
-        // tránh trường hợp sử dụng email người khác
-        let email = decoded.result.email;
-        body.email = email;
-        body["nick"] = decoded.result.nick_name;
+  // LiveToUsdt: (req, res) => {
+  //   const body = req.body;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         message: "no no",
+  //       });
+  //     } else {
+  //       // tránh trường hợp sử dụng email người khác
+  //       let email = decoded.result.email;
+  //       body.email = email;
+  //       body["nick"] = decoded.result.nick_name;
 
-        LiveToUsdt(body, (err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (!results) {
-            return res.json({
-              success: 0,
-              message: "Faile to send user",
-            });
-          }
-          return res.json({
-            success: 1,
-            message: "Send success",
-          });
-        });
-      }
-    });
-  },
+  //       LiveToUsdt(body, (err, results) => {
+  //         if (err) {
+  //           console.log(err);
+  //           return;
+  //         }
+  //         if (!results) {
+  //           return res.json({
+  //             success: 0,
+  //             message: "Faile to send user",
+  //           });
+  //         }
+  //         return res.json({
+  //           success: 1,
+  //           message: "Send success",
+  //         });
+  //       });
+  //     }
+  //   });
+  // },
   // giảm money_usdt trong users tăng balance trong account và in vào trade_history
-  UsdtToLive: (req, res) => {
-    const body = req.body;
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        // tránh trường hợp sử dụng email người khác
-        let email = decoded.result.email;
-        body.email = email;
-        body["nick"] = decoded.result.nick_name;
+  // UsdtToLive: (req, res) => {
+  //   const body = req.body;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       // tránh trường hợp sử dụng email người khác
+  //       let email = decoded.result.email;
+  //       body.email = email;
+  //       body["nick"] = decoded.result.nick_name;
 
-        UsdtToLive(body, (err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (!results) {
-            return res.json({
-              success: 0,
-              message: "Faile to send user",
-            });
-          }
-          return res.json({
-            success: 1,
-            message: "Send success",
-          });
-        });
-      }
-    });
-  },
+  //       UsdtToLive(body, (err, results) => {
+  //         if (err) {
+  //           console.log(err);
+  //           return;
+  //         }
+  //         if (!results) {
+  //           return res.json({
+  //             success: 0,
+  //             message: "Faile to send user",
+  //           });
+  //         }
+  //         return res.json({
+  //           success: 1,
+  //           message: "Send success",
+  //         });
+  //       });
+  //     }
+  //   });
+  // },
 
   // trừ money_usdt users gửi cộng money_usdt users nhận insert bản ghi trade_history gửi thông bảo telegram
-  WithDrawalNoiBo: (req, res) => {
-    const body = req.body;
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        body["email"] = decoded.result.email;
-        body["nick_name"] = decoded.result.nick_name;
+  // WithDrawalNoiBo: (req, res) => {
+  //   const body = req.body;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       body["email"] = decoded.result.email;
+  //       body["nick_name"] = decoded.result.nick_name;
 
-        let token = body.code;
-        getSecrect2FA(decoded.result.email, (err, results) => { // lấy mã qr của user
-          let secret = results.secret_2fa;
+  //       let token = body.code;
+  //       getSecrect2FA(decoded.result.email, (err, results) => { // lấy mã qr của user
+  //         let secret = results.secret_2fa;
 
-          //console.log(secret);
-          let token2 = speakeasy.totp({
-            secret: secret,
-            encoding: "base32",
-          });
-          //console.log(token2);
+  //         //console.log(secret);
+  //         let token2 = speakeasy.totp({
+  //           secret: secret,
+  //           encoding: "base32",
+  //         });
+  //         //console.log(token2);
 
-          const tokenValidates = speakeasy.totp.verify({ // xác minh mã 2fa có chuẩn ko
-            secret,
-            encoding: "base32",
-            token, // mã 2fa từ google authenticator
-            window: 2,
-            //step:60
-          });
+  //         const tokenValidates = speakeasy.totp.verify({ // xác minh mã 2fa có chuẩn ko
+  //           secret,
+  //           encoding: "base32",
+  //           token, // mã 2fa từ google authenticator
+  //           window: 2,
+  //           //step:60
+  //         });
 
-          //console.log(tokenValidates);
-          if (tokenValidates) {
-            checkUserNickName(body.address, (err, results) => { // check địa chỉ nhận có tồn tại không
-              if (err) {
-                console.log(err);
-                return;
-              }
-              if (!results.length) {
-                return res.json({
-                  success: 5,
-                  message: "Faile to send user",
-                });
-              }
+  //         //console.log(tokenValidates);
+  //         if (tokenValidates) {
+  //           checkUserNickName(body.address, (err, results) => { // check địa chỉ nhận có tồn tại không
+  //             if (err) {
+  //               console.log(err);
+  //               return;
+  //             }
+  //             if (!results.length) {
+  //               return res.json({
+  //                 success: 5,
+  //                 message: "Faile to send user",
+  //               });
+  //             }
 
-              WithDrawalNoiBo(body, (err, results) => { // thực hiện rút tiền nội bộ
-                if (err) {
-                  console.log(err);
-                  return;
-                }
-                if (!results) {
-                  return res.json({
-                    success: 0,
-                    message: "Faile to send user",
-                  });
-                }
-                if (!!results.err && results.err === 10) {
-                  return res.json({
-                    success: results.err,
-                    message: "User not verify",
-                  });
-                }
-                return res.json({
-                  success: 1,
-                  message: "Send success",
-                });
-              });
-            });
-          } else {
-            return res.json({
-              success: 2,
-            });
-          }
-        });
-      }
-    });
-  },
-  // trừ money_usdt user gửi và cộng money_usdt user nhận in vào trade_history và phải thực hiện chuyển tiền ERC20 ở đâu đó // vô lý 
-  WithDrawalERC: (req, res) => {
-    const body = req.body;
+  //             WithDrawalNoiBo(body, (err, results) => { // thực hiện rút tiền nội bộ
+  //               if (err) {
+  //                 console.log(err);
+  //                 return;
+  //               }
+  //               if (!results) {
+  //                 return res.json({
+  //                   success: 0,
+  //                   message: "Faile to send user",
+  //                 });
+  //               }
+  //               if (!!results.err && results.err === 10) {
+  //                 return res.json({
+  //                   success: results.err,
+  //                   message: "User not verify",
+  //                 });
+  //               }
+  //               return res.json({
+  //                 success: 1,
+  //                 message: "Send success",
+  //               });
+  //             });
+  //           });
+  //         } else {
+  //           return res.json({
+  //             success: 2,
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // },
+  // trừ money_usdt user gửi và cộng money_usdt user nhận in vào trade_history và phải thực hiện chuyển tiền ERC20 ở đâu đó // vô lý
+  // WithDrawalERC: (req, res) => {
+  //   const body = req.body;
 
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        body["email"] = decoded.result.email;
-        body["nick_name"] = decoded.result.nick_name;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       body["email"] = decoded.result.email;
+  //       body["nick_name"] = decoded.result.nick_name;
 
-        let token = body.code;
-        let secret = decoded.result.secret_2fa;
+  //       let token = body.code;
+  //       let secret = decoded.result.secret_2fa;
 
-        const tokenValidates = speakeasy.totp.verify({ // xác mình mã gg2fa
-          secret,
-          encoding: "base32",
-          token,
-          window: 2,
-          //step:60
-        });
+  //       const tokenValidates = speakeasy.totp.verify({ // xác mình mã gg2fa
+  //         secret,
+  //         encoding: "base32",
+  //         token,
+  //         window: 2,
+  //         //step:60
+  //       });
 
-        if (tokenValidates) { // nếu mã gg2fa chuẩn thì rút 
-          WithDrawalERC(body, (err, results) => {
-            if (err) {
-              console.log(err);
-              return;
-            }
-            if (!results) {
-              return res.json({
-                success: 0,
-                message: "Faile to send user",
-              });
-            }
-            return res.json({
-              success: 1,
-              message: "Send success",
-            });
-          });
-        } else {
-          return res.json({
-            success: 2,
-          });
-        }
-      }
-    });
-  },
-  // nếu money_usdt của user đủ và đã verified thì tiến hành trừ money_usdt của user và lưu vào trade_history chờ duyệt ở đâu đó 
-  WithDrawalBSC: (req, res) => {
-    const body = req.body;
+  //       if (tokenValidates) { // nếu mã gg2fa chuẩn thì rút
+  //         WithDrawalERC(body, (err, results) => {
+  //           if (err) {
+  //             console.log(err);
+  //             return;
+  //           }
+  //           if (!results) {
+  //             return res.json({
+  //               success: 0,
+  //               message: "Faile to send user",
+  //             });
+  //           }
+  //           return res.json({
+  //             success: 1,
+  //             message: "Send success",
+  //           });
+  //         });
+  //       } else {
+  //         return res.json({
+  //           success: 2,
+  //         });
+  //       }
+  //     }
+  //   });
+  // },
+  // nếu money_usdt của user đủ và đã verified thì tiến hành trừ money_usdt của user và lưu vào trade_history chờ duyệt ở đâu đó
+  // WithDrawalBSC: (req, res) => {
+  //   const body = req.body;
 
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        body["email"] = decoded.result.email;
-        body["nick_name"] = decoded.result.nick_name;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       return res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       body["email"] = decoded.result.email;
+  //       body["nick_name"] = decoded.result.nick_name;
 
-        let token = body.code;
-        let secret = decoded.result.secret_2fa;
+  //       let token = body.code;
+  //       let secret = decoded.result.secret_2fa;
 
-        const tokenValidates = speakeasy.totp.verify({
-          secret,
-          encoding: "base32",
-          token,
-          window: 2,
-          //step:60
-        });
+  //       const tokenValidates = speakeasy.totp.verify({
+  //         secret,
+  //         encoding: "base32",
+  //         token,
+  //         window: 2,
+  //         //step:60
+  //       });
 
-        if (tokenValidates) {
-          WithDrawalBSC(body, (err, results) => {
-            if (err) {
-              console.log(err);
-              return;
-            }
-            if (!results) {
-              return res.json({
-                success: 0,
-                message: "Faile to send user",
-              });
-            }
-            if (!!results.err && results.err === 10) {
-              return res.json({
-                success: results.err,
-                message: "User not verify",
-              });
-            }
-            return res.json({
-              success: 1,
-              message: "Send success",
-            });
-          });
-        } else {
-          return res.json({
-            success: 2,
-          });
-        }
-      }
-    });
-  },
-  // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận 
+  //       if (tokenValidates) {
+  //         WithDrawalBSC(body, (err, results) => {
+  //           if (err) {
+  //             console.log(err);
+  //             return;
+  //           }
+  //           if (!results) {
+  //             return res.json({
+  //               success: 0,
+  //               message: "Faile to send user",
+  //             });
+  //           }
+  //           if (!!results.err && results.err === 10) {
+  //             return res.json({
+  //               success: results.err,
+  //               message: "User not verify",
+  //             });
+  //           }
+  //           return res.json({
+  //             success: 1,
+  //             message: "Send success",
+  //           });
+  //         });
+  //       } else {
+  //         return res.json({
+  //           success: 2,
+  //         });
+  //       }
+  //     }
+  //   });
+  // },
+  // nếu số dư money_paypal đủ thì trừ money_paypal người gửi và thêm money_paypal người nhận
   // WithDrawalPaypalNB: (req, res) => {
   //   const body = req.body;
 
@@ -1558,59 +1584,59 @@ module.exports = {
   },
 
   // kiểm tra xem money_usdt của user có đủ không nếu đủ thì giảm money_usdt của user đi  và tăng balance của account live lên tạo bản ghi trade_history mới
-  DepositToWallet: (req, res) => {
-    const body = req.body;
+  // DepositToWallet: (req, res) => {
+  //   const body = req.body;
 
-    let token = req.get("authorization");
-    token = token.split(" ")[1];
-    verify(token, config.TOKEN_KEY, (err, decoded) => {
-      if (err) {
-        res.json({
-          success: 3,
-          l: false,
-          m: "no no",
-        });
-      } else {
-        let email = decoded.result.email;
+  //   let token = req.get("authorization");
+  //   token = token.split(" ")[1];
+  //   verify(token, config.TOKEN_KEY, (err, decoded) => {
+  //     if (err) {
+  //       res.json({
+  //         success: 3,
+  //         l: false,
+  //         m: "no no",
+  //       });
+  //     } else {
+  //       let email = decoded.result.email;
 
-        let obj = {
-          email: email,
-          m: body.money,
-          nick: decoded.result.nick_name,
-          uidLive: body.id,
-        };
+  //       let obj = {
+  //         email: email,
+  //         m: body.money,
+  //         nick: decoded.result.nick_name,
+  //         uidLive: body.id,
+  //       };
 
-        checkMoneyUser(email, (err, results) => { // lấy money_usdt balance của users
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (results.balance >= body.money) { // kiểm tra có đủ tiền để deposit không
-            DepositToWallet(obj, (err, results) => { // 
-              if (err) {
-                console.log(err);
-                return;
-              }
-              if (!results) {
-                return res.json({
-                  success: 0,
-                  message: "Faile to send user",
-                });
-              }
-              return res.json({
-                success: 1,
-              });
-            });
-          } else { // nếu không thì gửi lại user
-            return res.json({
-              success: 3,
-              message: "Faile to send user",
-            });
-          }
-        });
-      }
-    });
-  },
+  //       checkMoneyUser(email, (err, results) => { // lấy money_usdt balance của users
+  //         if (err) {
+  //           console.log(err);
+  //           return;
+  //         }
+  //         if (results.balance >= body.money) { // kiểm tra có đủ tiền để deposit không
+  //           DepositToWallet(obj, (err, results) => { //
+  //             if (err) {
+  //               console.log(err);
+  //               return;
+  //             }
+  //             if (!results) {
+  //               return res.json({
+  //                 success: 0,
+  //                 message: "Faile to send user",
+  //               });
+  //             }
+  //             return res.json({
+  //               success: 1,
+  //             });
+  //           });
+  //         } else { // nếu không thì gửi lại user
+  //           return res.json({
+  //             success: 3,
+  //             message: "Faile to send user",
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // },
   // tạo bản ghi trade_history về user nạp tiền và chờ duyệt
   DepositRequest: (req, res) => {
     const body = req.body;
@@ -1648,7 +1674,7 @@ module.exports = {
     });
   },
   // kiểm tra user có đủ tiền không nếu đủ thì tiến hành mua vip
-  // trừ tiền mua vip và tăng vip cho user cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user 
+  // trừ tiền mua vip và tăng vip cho user cộng tiền hoa hồng mua vip cho tối da 7 tầng người giới thiệu của user
   // UserBuyVIP: (req, res) => {
   //   let token = req.get("authorization");
   //   token = token.split(" ")[1];
@@ -1699,7 +1725,7 @@ module.exports = {
   //     }
   //   });
   // },
-  // lấy nhiều thông tin về đại lý cấp dưới 
+  // lấy nhiều thông tin về đại lý cấp dưới
   getNguoiGioiThieu: (req, res) => {
     let token = req.get("authorization");
     token = token.split(" ")[1];
@@ -1731,7 +1757,7 @@ module.exports = {
       }
     });
   },
-  // lấy các thông số thắng thua từ bet_history và account 
+  // lấy các thông số thắng thua từ bet_history và account
   getBoStatistics: (req, res) => {
     let token = req.get("authorization");
     token = token.split(" ")[1];
@@ -1828,7 +1854,7 @@ module.exports = {
       }
     });
   },
-  // lấy thông tin trade_history liên quan đến user 
+  // lấy thông tin trade_history liên quan đến user
   getListHisTradeWallet: (req, res) => {
     let token = req.get("authorization");
     token = token.split(" ")[1];
@@ -1897,7 +1923,7 @@ module.exports = {
       }
     });
   },
-  // lấy commission_history của user dựa trên ref_code tối đa 10 cái 
+  // lấy commission_history của user dựa trên ref_code tối đa 10 cái
   getListHisTradeWalletHH: (req, res) => {
     let token = req.get("authorization");
     token = token.split(" ")[1];
@@ -1929,7 +1955,7 @@ module.exports = {
       }
     });
   },
-  // lấy commission_history của user dựa trên ref code theo kiểu phân trang 
+  // lấy commission_history của user dựa trên ref code theo kiểu phân trang
   getListHisTradeWalletHHPage: (req, res) => {
     let body = req.params;
     let token = req.get("authorization");
@@ -2067,7 +2093,7 @@ module.exports = {
       }
     });
   },
-  // lấy thanhtoan(tổng tiền chiết khấu) soluongGD(tổng số lượng giao dịch) sonhaGD(tổng số nhà giao dịch) theo kiểu phân trang 
+  // lấy thanhtoan(tổng tiền chiết khấu) soluongGD(tổng số lượng giao dịch) sonhaGD(tổng số nhà giao dịch) theo kiểu phân trang
   getComDetailsPage: (req, res) => {
     let body = req.params;
     let token = req.get("authorization");
@@ -2293,7 +2319,7 @@ module.exports = {
       });
     });
   },
-  // lấy thông tin cấp 1 trong các khoảng thời gian khác nhau và lấy thông tin 7 tần còn lại 
+  // lấy thông tin cấp 1 trong các khoảng thời gian khác nhau và lấy thông tin 7 tần còn lại
   getListF1F7: (req, res) => {
     const body = req.body;
     getListF1F7(body, (err, results) => {

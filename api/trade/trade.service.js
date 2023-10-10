@@ -1,5 +1,5 @@
 const db = require("./../../database");
-const SmartChain = require("./../sendCoint.js");
+// const SmartChain = require("./../sendCoint.js");
 const moment = require("moment-timezone");
 // bản ghi có type_key khác nt nn là trade còn có nt, nn là deposit 
 // type: nt, nn, rt
